@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
 import { supabase } from "../../../lib/supabase"
 
-const BG = "#B56576"
+const BG = "#64B5A9"
 const ACCENT = "#F5E8D8"
 const MUTED = "rgba(255,255,255,0.65)"
 const DRAW_SECONDS = 90
@@ -523,7 +523,7 @@ export default function Play({ params }) {
             <div key={p.id} style={{ display: "flex" }}>
               <div style={{
                 padding: "16px 0", minWidth: 64, flexShrink: 0,
-                background: i === 0 ? ACCENT : "#94536D",
+                background: i === 0 ? ACCENT : "#4A8A8F",
                 color: i === 0 ? "#000" : "white",
                 fontSize: 26, fontWeight: 900,
                 display: "flex", alignItems: "center", justifyContent: "center",
@@ -532,7 +532,7 @@ export default function Play({ params }) {
               </div>
               <div style={{
                 padding: "16px 18px", flex: 1,
-                background: "#A05A72",
+                background: "#568E91",
                 display: "flex", flexDirection: "column", justifyContent: "center",
               }}>
                 <div style={{ fontSize: 18, fontWeight: 700 }}>
@@ -624,7 +624,7 @@ export default function Play({ params }) {
 
     return (
       <div style={{ minHeight: "100dvh", background: BG, color: "white" }}>
-        <div style={{ padding: "28px 24px 20px", background: "#94536D" }}>
+        <div style={{ padding: "28px 24px 20px", background: "#4A8A8F" }}>
           <div style={{ fontSize: 11, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.18em", opacity: 0.65, marginBottom: 4 }}>
             DRAWING {currentDrawingIndex + 1} OF {n}
           </div>
@@ -711,7 +711,7 @@ export default function Play({ params }) {
 
     return (
       <div style={{ minHeight: "100dvh", background: BG, color: "white", paddingBottom: 40 }}>
-        <div style={{ padding: "28px 24px 20px", background: "#94536D" }}>
+        <div style={{ padding: "28px 24px 20px", background: "#4A8A8F" }}>
           <div style={{ fontSize: 11, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.18em", opacity: 0.65, marginBottom: 4 }}>
             DRAWING {currentDrawingIndex + 1} OF {n}
           </div>
@@ -800,7 +800,7 @@ export default function Play({ params }) {
 
     return (
       <div style={{ minHeight: "100dvh", background: BG, color: "white", paddingBottom: 120 }}>
-        <div style={{ padding: "28px 24px 20px", background: "#94536D" }}>
+        <div style={{ padding: "28px 24px 20px", background: "#4A8A8F" }}>
           <div style={{ fontSize: 11, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.18em", opacity: 0.65, marginBottom: 4 }}>
             DRAWING {currentDrawingIndex + 1} OF {n}
           </div>
@@ -857,7 +857,7 @@ export default function Play({ params }) {
                     .map(v => players.find(p => p.id === v.voter_id)?.name)
                     .filter(Boolean)
                   return (
-                    <div key={a.id} style={{ background: "#8C4D68", padding: "12px 16px" }}>
+                    <div key={a.id} style={{ background: "#4E8589", padding: "12px 16px" }}>
                       <div style={{ fontSize: 17, fontWeight: 700, marginBottom: 6 }}>{a.text}</div>
                       <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 5 }}>
                         <span style={{ fontSize: 13, opacity: 0.7, fontWeight: 600 }}>by</span>
@@ -889,7 +889,7 @@ export default function Play({ params }) {
                 <div key={p.id} style={{ display: "flex" }}>
                   <div style={{
                     padding: "13px 0", minWidth: 56, flexShrink: 0,
-                    background: i === 0 ? ACCENT : "#94536D",
+                    background: i === 0 ? ACCENT : "#4A8A8F",
                     color: i === 0 ? "#000" : "white",
                     fontSize: 22, fontWeight: 900,
                     display: "flex", alignItems: "center", justifyContent: "center",
@@ -898,7 +898,7 @@ export default function Play({ params }) {
                   </div>
                   <div style={{
                     padding: "13px 16px", flex: 1,
-                    background: "#A05A72",
+                    background: "#568E91",
                     display: "flex", flexDirection: "column", justifyContent: "center",
                   }}>
                     <div style={{ fontSize: 16, fontWeight: 700 }}>
