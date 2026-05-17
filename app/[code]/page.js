@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react"
 import { useRouter } from "next/navigation"
 import { supabase } from "../../lib/supabase"
 
-const BG = "#64B5A9"
+const BG = "#307977"
 const ACCENT = "#F5E8D8"
 const MIN_PLAYERS = 4
 
@@ -178,7 +178,7 @@ export default function Lobby({ params }) {
   return (
     <div style={{ minHeight: "100dvh", background: BG, color: "white" }}>
       {/* Header */}
-      <div style={{ padding: "28px 24px 24px", background: "#4A8A8F", display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 16 }}>
+      <div style={{ padding: "28px 24px 24px", background: "#1C5250", display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 16 }}>
         <div style={{ minWidth: 0 }}>
           <div style={{ fontSize: 11, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.18em", opacity: 0.65, marginBottom: 4 }}>Drawful</div>
           <div style={{ fontSize: "clamp(18px, 6vw, 38px)", fontWeight: 900, letterSpacing: "-1px", lineHeight: 1, whiteSpace: "nowrap" }}>
@@ -252,7 +252,7 @@ export default function Lobby({ params }) {
         <div style={{ fontSize: 11, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.15em", color: "rgba(255,255,255,0.4)", marginBottom: 14 }}>
           Players
         </div>
-        <div style={{ background: "#508A8E", padding: "4px 14px 10px", borderTop: "3px solid rgba(255,255,255,0.30)" }}>
+        <div style={{ background: "#245E5C", padding: "4px 14px 10px", borderTop: "3px solid rgba(255,255,255,0.30)" }}>
           {humanPlayers.length === 0 && <div style={{ fontSize: 14, opacity: 0.65, fontStyle: "italic", paddingTop: 10 }}>No players yet</div>}
           {humanPlayers.map(p => (
             <div key={p.id} style={{ padding: "10px 0", borderBottom: "1px solid rgba(255,255,255,0.12)" }}>

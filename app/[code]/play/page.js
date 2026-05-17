@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
 import { supabase } from "../../../lib/supabase"
 
-const BG = "#64B5A9"
+const BG = "#307977"
 const ACCENT = "#F5E8D8"
 const MUTED = "rgba(255,255,255,0.65)"
 const DRAW_SECONDS = 90
@@ -246,7 +246,7 @@ export default function Play({ params }) {
   const [selectedAnswerId, setSelectedAnswerId] = useState(null)
   const [submittingVote, setSubmittingVote] = useState(false)
 
-  const [advancing, setAdvancing] = useState(false)
+  const [markingReady, setMarkingReady] = useState(false)
 
   const getExportRef = useRef(null)
   const prevPhaseRef = useRef(null)
@@ -361,6 +361,12 @@ export default function Play({ params }) {
     [answers, currentArtist]
   )
 
+  const takenAnswerIds = useMemo(() => {
+    const taken = new Set()
+    currentVotes.forEach(v => { if (v.voter_id !== myPlayerId) taken.add(v.answer_id) })
+    return taken
+  }, [currentVotes, myPlayerId])
+
   // ── Bot automation (dummy game) ───────────────────────────────────────────
 
   const botAutoRef = useRef(false)
@@ -409,13 +415,16 @@ export default function Play({ params }) {
       })
     }
 
-    // Voting phase: bots vote randomly
+    // Voting phase: bots vote randomly (skipping already-taken answers)
     if (game.phase === "voting" && currentArtist && currentAnswers.length > 0) {
       bots.filter(b => b.id !== currentArtist.id).forEach(bot => {
         const alreadyVoted = votes.some(v => v.drawing_player_id === currentArtist.id && v.voter_id === bot.id)
         if (alreadyVoted) return
+        const takenIds = new Set(votes.filter(v => v.drawing_player_id === currentArtist.id).map(v => v.answer_id))
+        const available = currentAnswers.filter(a => !takenIds.has(a.id))
+        if (!available.length) return
         botAutoRef.current = true
-        const randomAnswer = currentAnswers[Math.floor(Math.random() * currentAnswers.length)]
+        const randomAnswer = available[Math.floor(Math.random() * available.length)]
         setTimeout(() => {
           supabase.rpc("drawful_submit_vote", {
             p_code: code, p_drawing_player_id: currentArtist.id, p_voter_id: bot.id, p_answer_id: randomAnswer.id,
@@ -423,7 +432,20 @@ export default function Play({ params }) {
         }, 800 + Math.random() * 1500)
       })
     }
-  }, [game?.phase, game?.is_dummy, currentArtist?.id, players.length, answers.length, votes.length])
+
+    // Results phase: bots mark ready
+    if (game.phase === "results") {
+      const readyIds = game.ready_player_ids ?? []
+      bots.forEach(bot => {
+        if (readyIds.includes(bot.id)) return
+        botAutoRef.current = true
+        setTimeout(() => {
+          supabase.rpc("drawful_mark_ready", { p_code: code, p_player_id: bot.id })
+            .then(() => { botAutoRef.current = false })
+        }, 500 + Math.random() * 1000)
+      })
+    }
+  }, [game?.phase, game?.is_dummy, currentArtist?.id, players.length, answers.length, votes.length, game?.ready_player_ids?.length])
 
   // ── Actions ───────────────────────────────────────────────────────────────
 
@@ -485,12 +507,11 @@ export default function Play({ params }) {
     await loadState()
   }
 
-  async function nextDrawing() {
-    if (advancing) return
-    setAdvancing(true)
-    await supabase.rpc("drawful_next_drawing", { p_code: code })
+  async function markReady() {
+    if (markingReady) return
+    setMarkingReady(true)
+    await supabase.rpc("drawful_mark_ready", { p_code: code, p_player_id: myPlayerId })
     await loadState()
-    setAdvancing(false)
   }
 
   // ── Loading ───────────────────────────────────────────────────────────────
@@ -523,7 +544,7 @@ export default function Play({ params }) {
             <div key={p.id} style={{ display: "flex" }}>
               <div style={{
                 padding: "16px 0", minWidth: 64, flexShrink: 0,
-                background: i === 0 ? ACCENT : "#4A8A8F",
+                background: i === 0 ? ACCENT : "#1C5250",
                 color: i === 0 ? "#000" : "white",
                 fontSize: 26, fontWeight: 900,
                 display: "flex", alignItems: "center", justifyContent: "center",
@@ -532,7 +553,7 @@ export default function Play({ params }) {
               </div>
               <div style={{
                 padding: "16px 18px", flex: 1,
-                background: "#568E91",
+                background: "#245E5C",
                 display: "flex", flexDirection: "column", justifyContent: "center",
               }}>
                 <div style={{ fontSize: 18, fontWeight: 700 }}>
@@ -624,7 +645,7 @@ export default function Play({ params }) {
 
     return (
       <div style={{ minHeight: "100dvh", background: BG, color: "white" }}>
-        <div style={{ padding: "28px 24px 20px", background: "#4A8A8F" }}>
+        <div style={{ padding: "28px 24px 20px", background: "#1C5250" }}>
           <div style={{ fontSize: 11, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.18em", opacity: 0.65, marginBottom: 4 }}>
             DRAWING {currentDrawingIndex + 1} OF {n}
           </div>
@@ -635,7 +656,7 @@ export default function Play({ params }) {
           <img
             src={currentArtist.drawing_url}
             alt="Drawing to guess"
-            style={{ width: "100%", display: "block", maxHeight: "40vh", objectFit: "contain", background: "#fff" }}
+            style={{ width: "100%", display: "block", maxHeight: "40vh", objectFit: "contain" }}
           />
         )}
 
@@ -711,7 +732,7 @@ export default function Play({ params }) {
 
     return (
       <div style={{ minHeight: "100dvh", background: BG, color: "white", paddingBottom: 40 }}>
-        <div style={{ padding: "28px 24px 20px", background: "#4A8A8F" }}>
+        <div style={{ padding: "28px 24px 20px", background: "#1C5250" }}>
           <div style={{ fontSize: 11, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.18em", opacity: 0.65, marginBottom: 4 }}>
             DRAWING {currentDrawingIndex + 1} OF {n}
           </div>
@@ -722,7 +743,7 @@ export default function Play({ params }) {
           <img
             src={currentArtist.drawing_url}
             alt="Drawing"
-            style={{ width: "100%", display: "block", maxHeight: "35vh", objectFit: "contain", background: "#fff" }}
+            style={{ width: "100%", display: "block", maxHeight: "35vh", objectFit: "contain" }}
           />
         )}
 
@@ -756,22 +777,25 @@ export default function Play({ params }) {
               <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 16 }}>
                 {currentAnswers.map(a => {
                   const isSelected = selectedAnswerId === a.id
-                  // Prevent voting for your own fake answer
                   const isOwn = a.author_id === myPlayerId
+                  const isTaken = takenAnswerIds.has(a.id)
+                  const isDisabled = isOwn || isTaken
                   return (
                     <button
                       key={a.id}
-                      onClick={() => !isOwn && setSelectedAnswerId(a.id)}
-                      disabled={isOwn}
+                      onClick={() => !isDisabled && setSelectedAnswerId(a.id)}
+                      disabled={isDisabled}
                       style={{
                         padding: "16px 18px", textAlign: "left",
                         fontSize: 17, fontWeight: 700, color: "white",
                         background: isSelected ? "rgba(255,255,255,0.22)" : "rgba(255,255,255,0.08)",
                         border: isSelected ? `2px solid ${ACCENT}` : "2px solid rgba(255,255,255,0.12)",
-                        opacity: isOwn ? 0.3 : 1,
+                        opacity: isDisabled ? 0.35 : 1,
+                        display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8,
                       }}
                     >
-                      {a.text}
+                      <span>{a.text}</span>
+                      {isTaken && <span style={{ fontSize: 12, fontWeight: 700, opacity: 0.65, flexShrink: 0 }}>taken</span>}
                     </button>
                   )
                 })}
@@ -795,12 +819,13 @@ export default function Play({ params }) {
   if (game.phase === "results") {
     const realAnswer = currentAnswers.find(a => a.is_real)
     const fakeAnswers = currentAnswers.filter(a => !a.is_real)
-    const isHost = me.seat === 0
     const isLast = currentDrawingIndex >= n - 1
+    const isMeReady = (game.ready_player_ids ?? []).includes(myPlayerId)
+    const readyCount = (game.ready_player_ids ?? []).length
 
     return (
       <div style={{ minHeight: "100dvh", background: BG, color: "white", paddingBottom: 120 }}>
-        <div style={{ padding: "28px 24px 20px", background: "#4A8A8F" }}>
+        <div style={{ padding: "28px 24px 20px", background: "#1C5250" }}>
           <div style={{ fontSize: 11, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.18em", opacity: 0.65, marginBottom: 4 }}>
             DRAWING {currentDrawingIndex + 1} OF {n}
           </div>
@@ -811,7 +836,7 @@ export default function Play({ params }) {
           <img
             src={currentArtist.drawing_url}
             alt="Drawing"
-            style={{ width: "100%", display: "block", maxHeight: "30vh", objectFit: "contain", background: "#fff" }}
+            style={{ width: "100%", display: "block", maxHeight: "30vh", objectFit: "contain" }}
           />
         )}
 
@@ -857,7 +882,7 @@ export default function Play({ params }) {
                     .map(v => players.find(p => p.id === v.voter_id)?.name)
                     .filter(Boolean)
                   return (
-                    <div key={a.id} style={{ background: "#4E8589", padding: "12px 16px" }}>
+                    <div key={a.id} style={{ background: "#205858", padding: "12px 16px" }}>
                       <div style={{ fontSize: 17, fontWeight: 700, marginBottom: 6 }}>{a.text}</div>
                       <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 5 }}>
                         <span style={{ fontSize: 13, opacity: 0.7, fontWeight: 600 }}>by</span>
@@ -889,7 +914,7 @@ export default function Play({ params }) {
                 <div key={p.id} style={{ display: "flex" }}>
                   <div style={{
                     padding: "13px 0", minWidth: 56, flexShrink: 0,
-                    background: i === 0 ? ACCENT : "#4A8A8F",
+                    background: i === 0 ? ACCENT : "#1C5250",
                     color: i === 0 ? "#000" : "white",
                     fontSize: 22, fontWeight: 900,
                     display: "flex", alignItems: "center", justifyContent: "center",
@@ -898,7 +923,7 @@ export default function Play({ params }) {
                   </div>
                   <div style={{
                     padding: "13px 16px", flex: 1,
-                    background: "#568E91",
+                    background: "#245E5C",
                     display: "flex", flexDirection: "column", justifyContent: "center",
                   }}>
                     <div style={{ fontSize: 16, fontWeight: 700 }}>
@@ -912,20 +937,19 @@ export default function Play({ params }) {
           </div>
         </div>
 
-        {/* Fixed bottom: host advances */}
+        {/* Fixed bottom: all players ready to advance */}
         <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, padding: "16px 24px", paddingBottom: "calc(16px + env(safe-area-inset-bottom))", background: BG, borderTop: "1px solid rgba(255,255,255,0.15)" }}>
-          {isHost ? (
+          {(isMeReady || markingReady) ? (
+            <p style={{ fontSize: 14, fontWeight: 700, opacity: 0.75, textAlign: "center" }}>
+              {readyCount} / {players.length} ready — waiting for others…
+            </p>
+          ) : (
             <button
-              onClick={nextDrawing}
-              disabled={advancing}
+              onClick={markReady}
               style={{ background: ACCENT, color: "#000", fontSize: 20, fontWeight: 900, padding: "20px", width: "100%", display: "block" }}
             >
-              {advancing ? "…" : isLast ? "See Final Scores →" : "Next Drawing →"}
+              {isLast ? "See Final Scores →" : "Next Drawing →"}
             </button>
-          ) : (
-            <p style={{ fontSize: 14, opacity: 0.65, fontWeight: 600, textAlign: "center" }}>
-              Waiting for {players.find(p => p.seat === 0)?.name} to continue…
-            </p>
           )}
         </div>
       </div>
