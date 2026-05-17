@@ -324,20 +324,6 @@ export default function Play({ params }) {
     }
   }, [game?.current_drawing_index])
 
-  // Sound alerts on phase transitions requiring this player's action
-  useEffect(() => {
-    if (!game || !me) return
-    const curr = { phase: game.phase, drawingIndex: game.current_drawing_index }
-    const prev = soundTriggerRef.current
-    soundTriggerRef.current = curr
-    if (!prev) return // skip first load
-    const changed = prev.phase !== curr.phase || prev.drawingIndex !== curr.drawingIndex
-    if (!changed) return
-    if (curr.phase === "drawing") playChirp()
-    else if (curr.phase === "guessing" && !amArtist) playChirp()
-    else if (curr.phase === "voting" && !amArtist) playChirp()
-  }, [game?.phase, game?.current_drawing_index, myPlayerId, amArtist])
-
   // Drawing timer
   useEffect(() => {
     if (game?.phase !== "drawing" || !game.drawing_started_at) return
@@ -397,6 +383,20 @@ export default function Play({ params }) {
     currentVotes.forEach(v => { if (v.voter_id !== myPlayerId) taken.add(v.answer_id) })
     return taken
   }, [currentVotes, myPlayerId])
+
+  // Sound alerts on phase transitions requiring this player's action
+  useEffect(() => {
+    if (!game || !me) return
+    const curr = { phase: game.phase, drawingIndex: game.current_drawing_index }
+    const prev = soundTriggerRef.current
+    soundTriggerRef.current = curr
+    if (!prev) return // skip first load
+    const changed = prev.phase !== curr.phase || prev.drawingIndex !== curr.drawingIndex
+    if (!changed) return
+    if (curr.phase === "drawing") playChirp()
+    else if (curr.phase === "guessing" && !amArtist) playChirp()
+    else if (curr.phase === "voting" && !amArtist) playChirp()
+  }, [game?.phase, game?.current_drawing_index, myPlayerId, amArtist])
 
   // ── Bot automation (dummy game) ───────────────────────────────────────────
 
