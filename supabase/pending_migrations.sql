@@ -2,8 +2,7 @@
 ALTER TABLE drawful_games
   ADD COLUMN IF NOT EXISTS ready_player_ids uuid[] DEFAULT '{}';
 
--- Updated drawful_submit_vote:
---   - Rejects if the chosen answer_id already has a vote from a different player
+-- drawful_submit_vote: multiple players may vote for the same answer (no exclusivity)
 --   - Awards 1 pt to voter for correct guess, 1 pt to fake-answer author per fool
 --   - Advances phase to 'results' when all eligible voters have voted
 CREATE OR REPLACE FUNCTION drawful_submit_vote(
@@ -23,17 +22,6 @@ BEGIN
       AND drawing_player_id = p_drawing_player_id
       AND voter_id = p_voter_id
   ) THEN RETURN; END IF;
-
-  -- Reject if another player already claimed this answer
-  IF EXISTS (
-    SELECT 1 FROM drawful_votes
-    WHERE game_code = p_code
-      AND drawing_player_id = p_drawing_player_id
-      AND answer_id = p_answer_id
-      AND voter_id != p_voter_id
-  ) THEN
-    RAISE EXCEPTION 'answer_already_taken';
-  END IF;
 
   INSERT INTO drawful_votes (game_code, drawing_player_id, voter_id, answer_id)
   VALUES (p_code, p_drawing_player_id, p_voter_id, p_answer_id);

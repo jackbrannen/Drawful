@@ -378,11 +378,6 @@ export default function Play({ params }) {
     [answers, currentArtist]
   )
 
-  const takenAnswerIds = useMemo(() => {
-    const taken = new Set()
-    currentVotes.forEach(v => { if (v.voter_id !== myPlayerId) taken.add(v.answer_id) })
-    return taken
-  }, [currentVotes, myPlayerId])
 
   // Sound alerts on phase transitions requiring this player's action
   useEffect(() => {
@@ -446,16 +441,13 @@ export default function Play({ params }) {
       })
     }
 
-    // Voting phase: bots vote randomly (skipping already-taken answers)
+    // Voting phase: bots vote randomly
     if (game.phase === "voting" && currentArtist && currentAnswers.length > 0) {
       bots.filter(b => b.id !== currentArtist.id).forEach(bot => {
         const alreadyVoted = votes.some(v => v.drawing_player_id === currentArtist.id && v.voter_id === bot.id)
         if (alreadyVoted) return
-        const takenIds = new Set(votes.filter(v => v.drawing_player_id === currentArtist.id).map(v => v.answer_id))
-        const available = currentAnswers.filter(a => !takenIds.has(a.id))
-        if (!available.length) return
         botAutoRef.current = true
-        const randomAnswer = available[Math.floor(Math.random() * available.length)]
+        const randomAnswer = currentAnswers[Math.floor(Math.random() * currentAnswers.length)]
         setTimeout(() => {
           supabase.rpc("drawful_submit_vote", {
             p_code: code, p_drawing_player_id: currentArtist.id, p_voter_id: bot.id, p_answer_id: randomAnswer.id,
@@ -809,24 +801,20 @@ export default function Play({ params }) {
                 {currentAnswers.map(a => {
                   const isSelected = selectedAnswerId === a.id
                   const isOwn = a.author_id === myPlayerId
-                  const isTaken = takenAnswerIds.has(a.id)
-                  const isDisabled = isOwn || isTaken
                   return (
                     <button
                       key={a.id}
-                      onClick={() => !isDisabled && setSelectedAnswerId(a.id)}
-                      disabled={isDisabled}
+                      onClick={() => !isOwn && setSelectedAnswerId(a.id)}
+                      disabled={isOwn}
                       style={{
                         padding: "16px 18px", textAlign: "left",
                         fontSize: 17, fontWeight: 700, color: "white",
                         background: isSelected ? "rgba(255,255,255,0.22)" : "rgba(255,255,255,0.08)",
                         border: isSelected ? `2px solid ${ACCENT}` : "2px solid rgba(255,255,255,0.12)",
-                        opacity: isDisabled ? 0.35 : 1,
-                        display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8,
+                        opacity: isOwn ? 0.35 : 1,
                       }}
                     >
-                      <span>{a.text}</span>
-                      {isTaken && <span style={{ fontSize: 12, fontWeight: 700, opacity: 0.65, flexShrink: 0 }}>taken</span>}
+                      {a.text}
                     </button>
                   )
                 })}
