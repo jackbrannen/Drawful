@@ -5,7 +5,8 @@ import { useRouter } from "next/navigation"
 import { supabase } from "../../../lib/supabase"
 
 const BG = "#B56576"
-const ACCENT = "#F0906A"
+const ACCENT = "#F5E8D8"
+const MUTED = "rgba(255,255,255,0.65)"
 const DRAW_SECONDS = 90
 
 const PALETTE = [
@@ -535,9 +536,9 @@ export default function Play({ params }) {
                 display: "flex", flexDirection: "column", justifyContent: "center",
               }}>
                 <div style={{ fontSize: 18, fontWeight: 700 }}>
-                  {p.name}{p.id === myPlayerId && <span style={{ fontSize: 12, opacity: 0.4, marginLeft: 6 }}>you</span>}
+                  {p.name}{p.id === myPlayerId && <span style={{ fontSize: 12, opacity: 0.65, marginLeft: 6 }}>you</span>}
                 </div>
-                <div style={{ fontSize: 12, opacity: 0.35, fontWeight: 700 }}>#{i + 1}</div>
+                <div style={{ fontSize: 12, opacity: 0.65, fontWeight: 700 }}>#{i + 1}</div>
               </div>
             </div>
           ))}
@@ -566,7 +567,7 @@ export default function Play({ params }) {
           <p style={{ fontSize: 22, fontWeight: 800, marginBottom: 8 }}>
             {timerExpired ? "Time's up! Submitting…" : "Waiting for everyone to finish drawing…"}
           </p>
-          <p style={{ fontSize: 13, opacity: 0.35, fontWeight: 700 }}>{submittedCount} of {n} done</p>
+          <p style={{ fontSize: 13, opacity: 0.65, fontWeight: 700 }}>{submittedCount} of {n} done</p>
         </div>
       )
     }
@@ -579,7 +580,7 @@ export default function Play({ params }) {
         </div>
 
         <div style={{ padding: "16px 24px 8px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <div style={{ fontSize: 11, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.15em", opacity: 0.45 }}>
+          <div style={{ fontSize: 11, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.15em", opacity: 0.65 }}>
             DRAWING PHASE
           </div>
           <div style={{ fontSize: urgent ? 22 : 18, fontWeight: 900, color: urgent ? "#F97316" : "white" }}>
@@ -588,13 +589,13 @@ export default function Play({ params }) {
         </div>
 
         <div style={{ padding: "0 24px 12px" }}>
-          <div style={{ fontSize: 11, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.15em", opacity: 0.45, marginBottom: 6 }}>
+          <div style={{ fontSize: 11, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.15em", opacity: 0.65, marginBottom: 6 }}>
             YOUR PROMPT
           </div>
           <div style={{ fontSize: 22, fontWeight: 900, lineHeight: 1.2, marginBottom: 4 }}>
             {me.prompt}
           </div>
-          <div style={{ fontSize: 13, opacity: 0.4, fontWeight: 600 }}>Draw this. No letters or numbers!</div>
+          <div style={{ fontSize: 13, opacity: 0.65, fontWeight: 600 }}>Draw this. No letters or numbers!</div>
         </div>
 
         <div style={{ padding: "0 24px" }}>
@@ -623,8 +624,8 @@ export default function Play({ params }) {
 
     return (
       <div style={{ minHeight: "100dvh", background: BG, color: "white" }}>
-        <div style={{ padding: "28px 24px 20px", background: "rgba(0,0,0,0.3)" }}>
-          <div style={{ fontSize: 11, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.18em", opacity: 0.45, marginBottom: 4 }}>
+        <div style={{ padding: "28px 24px 20px", background: "#94536D" }}>
+          <div style={{ fontSize: 11, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.18em", opacity: 0.65, marginBottom: 4 }}>
             DRAWING {currentDrawingIndex + 1} OF {n}
           </div>
           <div style={{ fontSize: 22, fontWeight: 900 }}>{currentArtist?.name}'s drawing</div>
@@ -648,7 +649,7 @@ export default function Play({ params }) {
               <div style={{ fontSize: 32, fontWeight: 900, color: ACCENT, marginBottom: 4 }}>
                 {fakeAnswerCount}
               </div>
-              <div style={{ fontSize: 14, opacity: 0.5, fontWeight: 600 }}>
+              <div style={{ fontSize: 14, opacity: 0.7, fontWeight: 600 }}>
                 {fakeAnswerCount === 1 ? "answer" : "answers"} submitted so far
               </div>
               {/* Placeholder dots for suspense */}
@@ -666,9 +667,9 @@ export default function Play({ params }) {
           ) : isWaiting ? (
             // Already answered
             <div>
-              <p style={{ fontSize: 15, opacity: 0.5, fontWeight: 600, marginBottom: 8 }}>You answered:</p>
+              <p style={{ fontSize: 15, opacity: 0.7, fontWeight: 600, marginBottom: 8 }}>You answered:</p>
               <p style={{ fontSize: 20, fontWeight: 800, marginBottom: 20 }}>"{myAnswer?.text}"</p>
-              <p style={{ fontSize: 14, opacity: 0.4, fontWeight: 600 }}>Waiting for everyone to answer…</p>
+              <p style={{ fontSize: 14, opacity: 0.65, fontWeight: 600 }}>Waiting for everyone to answer…</p>
             </div>
           ) : (
             // Submit fake answer
@@ -710,8 +711,8 @@ export default function Play({ params }) {
 
     return (
       <div style={{ minHeight: "100dvh", background: BG, color: "white", paddingBottom: 40 }}>
-        <div style={{ padding: "28px 24px 20px", background: "rgba(0,0,0,0.3)" }}>
-          <div style={{ fontSize: 11, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.18em", opacity: 0.45, marginBottom: 4 }}>
+        <div style={{ padding: "28px 24px 20px", background: "#94536D" }}>
+          <div style={{ fontSize: 11, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.18em", opacity: 0.65, marginBottom: 4 }}>
             DRAWING {currentDrawingIndex + 1} OF {n}
           </div>
           <div style={{ fontSize: 22, fontWeight: 900 }}>{currentArtist?.name}'s drawing</div>
@@ -727,12 +728,12 @@ export default function Play({ params }) {
 
         <div style={{ padding: "20px 24px" }}>
           {amArtist ? (
-            <p style={{ fontSize: 16, opacity: 0.55, fontWeight: 600, textAlign: "center", paddingTop: 8 }}>
+            <p style={{ fontSize: 16, opacity: 0.75, fontWeight: 600, textAlign: "center", paddingTop: 8 }}>
               Watch everyone vote.
             </p>
           ) : hasVoted ? (
             <div>
-              <p style={{ fontSize: 15, opacity: 0.5, fontWeight: 600, marginBottom: 20 }}>Waiting for everyone to vote…</p>
+              <p style={{ fontSize: 15, opacity: 0.7, fontWeight: 600, marginBottom: 20 }}>Waiting for everyone to vote…</p>
               <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                 {currentAnswers.map(a => (
                   <div key={a.id} style={{
@@ -799,8 +800,8 @@ export default function Play({ params }) {
 
     return (
       <div style={{ minHeight: "100dvh", background: BG, color: "white", paddingBottom: 120 }}>
-        <div style={{ padding: "28px 24px 20px", background: "rgba(0,0,0,0.3)" }}>
-          <div style={{ fontSize: 11, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.18em", opacity: 0.45, marginBottom: 4 }}>
+        <div style={{ padding: "28px 24px 20px", background: "#94536D" }}>
+          <div style={{ fontSize: 11, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.18em", opacity: 0.65, marginBottom: 4 }}>
             DRAWING {currentDrawingIndex + 1} OF {n}
           </div>
           <div style={{ fontSize: 22, fontWeight: 900 }}>{currentArtist?.name}'s drawing</div>
@@ -832,11 +833,11 @@ export default function Play({ params }) {
                     ? (
                       <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 4, marginTop: 6 }}>
                         <span style={{ fontSize: 13, fontWeight: 800 }}>{correctVoters.join(", ")}</span>
-                        <span style={{ fontSize: 13, opacity: 0.55, fontWeight: 600 }}>guessed right</span>
+                        <span style={{ fontSize: 13, opacity: 0.75, fontWeight: 600 }}>guessed right</span>
                         <span style={{ fontSize: 13, fontWeight: 800, color: ACCENT }}>+1 each</span>
                       </div>
                     )
-                    : <div style={{ fontSize: 13, opacity: 0.4, fontWeight: 600, marginTop: 6 }}>Nobody got it!</div>
+                    : <div style={{ fontSize: 13, opacity: 0.65, fontWeight: 600, marginTop: 6 }}>Nobody got it!</div>
                 })()}
               </div>
             </div>
@@ -859,16 +860,16 @@ export default function Play({ params }) {
                     <div key={a.id} style={{ background: "#8C4D68", padding: "12px 16px" }}>
                       <div style={{ fontSize: 17, fontWeight: 700, marginBottom: 6 }}>{a.text}</div>
                       <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 5 }}>
-                        <span style={{ fontSize: 13, opacity: 0.5, fontWeight: 600 }}>by</span>
+                        <span style={{ fontSize: 13, opacity: 0.7, fontWeight: 600 }}>by</span>
                         <span style={{ fontSize: 14, fontWeight: 800 }}>{author?.name ?? "?"}</span>
                         {fooled.length > 0 ? (
                           <>
-                            <span style={{ fontSize: 13, opacity: 0.5, fontWeight: 600 }}>· fooled</span>
+                            <span style={{ fontSize: 13, opacity: 0.7, fontWeight: 600 }}>· fooled</span>
                             <span style={{ fontSize: 14, fontWeight: 800 }}>{fooled.join(", ")}</span>
                             <span style={{ fontSize: 13, fontWeight: 800, color: ACCENT }}>+{fooled.length}</span>
                           </>
                         ) : (
-                          <span style={{ fontSize: 13, opacity: 0.4, fontWeight: 600 }}>· nobody fooled</span>
+                          <span style={{ fontSize: 13, opacity: 0.65, fontWeight: 600 }}>· nobody fooled</span>
                         )}
                       </div>
                     </div>
@@ -901,9 +902,9 @@ export default function Play({ params }) {
                     display: "flex", flexDirection: "column", justifyContent: "center",
                   }}>
                     <div style={{ fontSize: 16, fontWeight: 700 }}>
-                      {p.name}{p.id === myPlayerId && <span style={{ fontSize: 12, opacity: 0.4, marginLeft: 6 }}>you</span>}
+                      {p.name}{p.id === myPlayerId && <span style={{ fontSize: 12, opacity: 0.65, marginLeft: 6 }}>you</span>}
                     </div>
-                    <div style={{ fontSize: 12, opacity: 0.35, fontWeight: 700 }}>#{i + 1}</div>
+                    <div style={{ fontSize: 12, opacity: 0.65, fontWeight: 700 }}>#{i + 1}</div>
                   </div>
                 </div>
               ))}
@@ -922,7 +923,7 @@ export default function Play({ params }) {
               {advancing ? "…" : isLast ? "See Final Scores →" : "Next Drawing →"}
             </button>
           ) : (
-            <p style={{ fontSize: 14, opacity: 0.4, fontWeight: 600, textAlign: "center" }}>
+            <p style={{ fontSize: 14, opacity: 0.65, fontWeight: 600, textAlign: "center" }}>
               Waiting for {players.find(p => p.seat === 0)?.name} to continue…
             </p>
           )}

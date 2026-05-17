@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation"
 import { supabase } from "../../lib/supabase"
 
 const BG = "#B56576"
-const ACCENT = "#F0906A"
+const ACCENT = "#F5E8D8"
 const MIN_PLAYERS = 4
 
 const WORDS_A = [
@@ -161,7 +161,7 @@ export default function Lobby({ params }) {
   if (game.phase !== "lobby" && !me) {
     return (
       <div style={{ minHeight: "100dvh", background: BG, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "40px 24px", textAlign: "center" }}>
-        <div style={{ fontSize: 13, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.18em", opacity: 0.5, marginBottom: 16 }}>Drawful</div>
+        <div style={{ fontSize: 13, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.18em", opacity: 0.7, marginBottom: 16 }}>Drawful</div>
         <h2 style={{ fontSize: 28, fontWeight: 900, marginBottom: 12, color: "white" }}>
           {game.phase === "finished" ? "Game over." : "A game is in progress."}
         </h2>
@@ -178,9 +178,9 @@ export default function Lobby({ params }) {
   return (
     <div style={{ minHeight: "100dvh", background: BG, color: "white" }}>
       {/* Header */}
-      <div style={{ padding: "28px 24px 24px", background: "rgba(0,0,0,0.3)", display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 16 }}>
+      <div style={{ padding: "28px 24px 24px", background: "#94536D", display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 16 }}>
         <div style={{ minWidth: 0 }}>
-          <div style={{ fontSize: 11, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.18em", opacity: 0.45, marginBottom: 4 }}>Drawful</div>
+          <div style={{ fontSize: 11, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.18em", opacity: 0.65, marginBottom: 4 }}>Drawful</div>
           <div style={{ fontSize: "clamp(18px, 6vw, 38px)", fontWeight: 900, letterSpacing: "-1px", lineHeight: 1, whiteSpace: "nowrap" }}>
             {(() => {
               const [w1, w2] = splitCode(code)
@@ -213,7 +213,7 @@ export default function Lobby({ params }) {
           >
             {starting ? "Starting…" : "Start Game"}
           </button>
-          <p style={{ fontSize: 13, color: "#000", opacity: 0.5, marginTop: 10, fontWeight: 600 }}>
+          <p style={{ fontSize: 13, color: "#000", opacity: 0.7, marginTop: 10, fontWeight: 600 }}>
             {humanPlayers.length} players = {humanPlayers.length} drawings.
           </p>
         </div>
@@ -252,19 +252,19 @@ export default function Lobby({ params }) {
         <div style={{ fontSize: 11, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.15em", color: "rgba(255,255,255,0.4)", marginBottom: 14 }}>
           Players
         </div>
-        <div style={{ background: "rgba(0,0,0,0.28)", padding: "4px 14px 10px", borderTop: "3px solid rgba(255,255,255,0.30)" }}>
-          {humanPlayers.length === 0 && <div style={{ fontSize: 14, opacity: 0.4, fontStyle: "italic", paddingTop: 10 }}>No players yet</div>}
+        <div style={{ background: "#9A4F6A", padding: "4px 14px 10px", borderTop: "3px solid rgba(255,255,255,0.30)" }}>
+          {humanPlayers.length === 0 && <div style={{ fontSize: 14, opacity: 0.65, fontStyle: "italic", paddingTop: 10 }}>No players yet</div>}
           {humanPlayers.map(p => (
             <div key={p.id} style={{ padding: "10px 0", borderBottom: "1px solid rgba(255,255,255,0.12)" }}>
               <span style={{ fontSize: 17, fontWeight: 700 }}>
                 {p.name}
-                {p.id === myPlayerId && <span style={{ fontSize: 12, fontWeight: 600, opacity: 0.45, marginLeft: 6 }}>you</span>}
+                {p.id === myPlayerId && <span style={{ fontSize: 12, fontWeight: 600, opacity: 0.65, marginLeft: 6 }}>you</span>}
               </span>
             </div>
           ))}
         </div>
         {humanPlayers.length < MIN_PLAYERS && (
-          <p style={{ fontSize: 13, opacity: 0.4, fontWeight: 600, marginTop: 10 }}>Minimum {MIN_PLAYERS} players needed.</p>
+          <p style={{ fontSize: 13, opacity: 0.65, fontWeight: 600, marginTop: 10 }}>Minimum {MIN_PLAYERS} players needed.</p>
         )}
       </div>
     </div>

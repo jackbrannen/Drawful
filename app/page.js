@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation"
 import { supabase } from "../lib/supabase"
 
 const BG = "#B56576"
-const ACCENT = "#F0906A"
+const ACCENT = "#F5E8D8"
 
 const WORDS_A = [
   "MAPLE","RIVER","OCEAN","VELVET","COPPER","SILVER","EMBER","FOREST","CLOUD",
@@ -134,7 +134,7 @@ export default function Home() {
         Drawful
       </h1>
       <p style={{
-        color: "rgba(255,255,255,0.45)", fontSize: 14, fontWeight: 700,
+        color: "rgba(255,255,255,0.7)", fontSize: 14, fontWeight: 700,
         textAlign: "center", marginBottom: 56, letterSpacing: "0.1em", textTransform: "uppercase",
       }}>
         Draw weird. Guess weirder.
