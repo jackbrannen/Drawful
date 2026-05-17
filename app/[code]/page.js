@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation"
 import { supabase } from "../../lib/supabase"
 
 const BG = "#B56576"
-const YELLOW = "#FBDF54"
+const ACCENT = "#F0906A"
 const MIN_PLAYERS = 4
 
 const WORDS_A = [
@@ -184,7 +184,7 @@ export default function Lobby({ params }) {
           <div style={{ fontSize: "clamp(18px, 6vw, 38px)", fontWeight: 900, letterSpacing: "-1px", lineHeight: 1, whiteSpace: "nowrap" }}>
             {(() => {
               const [w1, w2] = splitCode(code)
-              return <><span style={{ color: YELLOW }}>{w1}</span><span style={{ color: "rgba(255,255,255,0.75)" }}>{w2}</span></>
+              return <><span style={{ color: ACCENT }}>{w1}</span><span style={{ color: "rgba(255,255,255,0.75)" }}>{w2}</span></>
             })()}
           </div>
         </div>
@@ -202,14 +202,14 @@ export default function Lobby({ params }) {
 
       {/* Start CTA */}
       {canStart && me && (
-        <div style={{ padding: "20px 24px", background: YELLOW }}>
+        <div style={{ padding: "20px 24px", background: ACCENT }}>
           <div style={{ fontSize: 13, fontWeight: 800, color: "#000", opacity: 0.6, textTransform: "uppercase", letterSpacing: "0.12em", marginBottom: 10 }}>
             All players in?
           </div>
           <button
             onClick={startGame}
             disabled={starting}
-            style={{ background: "#000", color: YELLOW, fontSize: 24, fontWeight: 900, padding: "20px", width: "100%", display: "block" }}
+            style={{ background: "#000", color: ACCENT, fontSize: 24, fontWeight: 900, padding: "20px", width: "100%", display: "block" }}
           >
             {starting ? "Starting…" : "Start Game"}
           </button>
@@ -239,7 +239,7 @@ export default function Lobby({ params }) {
           <button
             onClick={join}
             disabled={!username.trim() || (!savedProfile && (!firstName.trim() || !lastName.trim())) || joining}
-            style={{ background: YELLOW, color: "#000", fontSize: 20, fontWeight: 900, padding: "18px", width: "100%", marginTop: 8, display: "block" }}
+            style={{ background: ACCENT, color: "#000", fontSize: 20, fontWeight: 900, padding: "18px", width: "100%", marginTop: 8, display: "block" }}
           >
             {joining ? "Joining…" : "Join"}
           </button>

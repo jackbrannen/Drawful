@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation"
 import { supabase } from "../../../lib/supabase"
 
 const BG = "#B56576"
-const YELLOW = "#FBDF54"
+const ACCENT = "#F0906A"
 const DRAW_SECONDS = 90
 
 const PALETTE = [
@@ -180,7 +180,7 @@ function DrawingCanvas({ onExport, onFirstMark }) {
           { mode: "bucket", icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m19 11-8-8-8.5 8.5a5.5 5.5 0 0 0 7.78 7.78Z"/><path d="m5 3 5 5"/><path d="M22 22c0-1.2-.2-2-.8-3-1.4 0-2.2 1.8-2.2 3"/></svg> },
         ].map(({ mode, icon }) => (
           <button key={mode} onClick={() => handleSetTool(mode === "eraser" && toolMode === "eraser" ? "pen" : mode === "bucket" && toolMode === "bucket" ? "pen" : mode)}
-            style={{ background: toolMode === mode ? YELLOW : "rgba(255,255,255,0.15)", color: toolMode === mode ? "#000" : "white", width: 44, height: 44, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+            style={{ background: toolMode === mode ? ACCENT : "rgba(255,255,255,0.15)", color: toolMode === mode ? "#000" : "white", width: 44, height: 44, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
             {icon}
           </button>
         ))}
@@ -200,7 +200,7 @@ function DrawingCanvas({ onExport, onFirstMark }) {
           const d = 5 + i * 4.5, active = brushSize === sz && toolMode !== "bucket"
           return (
             <button key={sz} onClick={() => handleSizeChange(sz)} disabled={toolMode === "bucket"}
-              style={{ width: 38, height: 38, flexShrink: 0, background: active ? "rgba(255,255,255,0.18)" : "transparent", display: "flex", alignItems: "center", justifyContent: "center", border: active ? `2px solid ${YELLOW}` : "2px solid transparent" }}>
+              style={{ width: 38, height: 38, flexShrink: 0, background: active ? "rgba(255,255,255,0.18)" : "transparent", display: "flex", alignItems: "center", justifyContent: "center", border: active ? `2px solid ${ACCENT}` : "2px solid transparent" }}>
               <div style={{ width: d, height: d, borderRadius: "50%", background: "white" }} />
             </button>
           )
@@ -513,7 +513,7 @@ export default function Play({ params }) {
       <div style={{ minHeight: "100dvh", background: BG, color: "white" }}>
         <div style={{ padding: "48px 24px 32px", textAlign: "center" }}>
           <h1 style={{ fontSize: 36, fontWeight: 900, letterSpacing: "-1px", marginBottom: 8 }}>Game over!</h1>
-          <p style={{ fontSize: 18, fontWeight: 700, color: YELLOW, marginBottom: 32 }}>
+          <p style={{ fontSize: 18, fontWeight: 700, color: ACCENT, marginBottom: 32 }}>
             {winners.length === 1 ? `${winners[0].name} wins!` : "It's a tie!"}
           </p>
         </div>
@@ -522,7 +522,7 @@ export default function Play({ params }) {
             <div key={p.id} style={{ display: "flex" }}>
               <div style={{
                 padding: "16px 0", minWidth: 64, flexShrink: 0,
-                background: i === 0 ? YELLOW : "rgba(0,0,0,0.28)",
+                background: i === 0 ? ACCENT : "#94536D",
                 color: i === 0 ? "#000" : "white",
                 fontSize: 26, fontWeight: 900,
                 display: "flex", alignItems: "center", justifyContent: "center",
@@ -531,7 +531,7 @@ export default function Play({ params }) {
               </div>
               <div style={{
                 padding: "16px 18px", flex: 1,
-                background: "rgba(0,0,0,0.15)",
+                background: "#A05A72",
                 display: "flex", flexDirection: "column", justifyContent: "center",
               }}>
                 <div style={{ fontSize: 18, fontWeight: 700 }}>
@@ -575,7 +575,7 @@ export default function Play({ params }) {
       <div style={{ minHeight: "100dvh", background: BG, color: "white" }}>
         {/* Timer bar */}
         <div style={{ height: 6, background: "rgba(255,255,255,0.15)" }}>
-          <div style={{ height: "100%", width: `${pct}%`, background: urgent ? "#F97316" : YELLOW, transition: "width 0.5s linear" }} />
+          <div style={{ height: "100%", width: `${pct}%`, background: urgent ? "#F97316" : ACCENT, transition: "width 0.5s linear" }} />
         </div>
 
         <div style={{ padding: "16px 24px 8px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -605,7 +605,7 @@ export default function Play({ params }) {
           <button
             onClick={() => submitDrawing(false)}
             disabled={submittingDrawing}
-            style={{ background: YELLOW, color: "#000", fontSize: 20, fontWeight: 900, padding: "18px", width: "100%", display: "block", marginTop: 16 }}
+            style={{ background: ACCENT, color: "#000", fontSize: 20, fontWeight: 900, padding: "18px", width: "100%", display: "block", marginTop: 16 }}
           >
             {submittingDrawing ? "Submitting…" : "Done Drawing"}
           </button>
@@ -645,7 +645,7 @@ export default function Play({ params }) {
               <p style={{ fontSize: 16, opacity: 0.65, fontWeight: 600, marginBottom: 16 }}>
                 Watch the fake answers come in.
               </p>
-              <div style={{ fontSize: 32, fontWeight: 900, color: YELLOW, marginBottom: 4 }}>
+              <div style={{ fontSize: 32, fontWeight: 900, color: ACCENT, marginBottom: 4 }}>
                 {fakeAnswerCount}
               </div>
               <div style={{ fontSize: 14, opacity: 0.5, fontWeight: 600 }}>
@@ -692,7 +692,7 @@ export default function Play({ params }) {
               <button
                 onClick={submitAnswer}
                 disabled={!answerText.trim() || submittingAnswer}
-                style={{ background: YELLOW, color: "#000", fontSize: 20, fontWeight: 900, padding: "18px", width: "100%", display: "block" }}
+                style={{ background: ACCENT, color: "#000", fontSize: 20, fontWeight: 900, padding: "18px", width: "100%", display: "block" }}
               >
                 {submittingAnswer ? "Submitting…" : "Submit"}
               </button>
@@ -738,11 +738,11 @@ export default function Play({ params }) {
                   <div key={a.id} style={{
                     padding: "16px 18px", fontSize: 17, fontWeight: 700,
                     background: a.id === myVote?.answer_id ? "rgba(255,255,255,0.22)" : "rgba(255,255,255,0.08)",
-                    border: a.id === myVote?.answer_id ? `2px solid ${YELLOW}` : "2px solid transparent",
+                    border: a.id === myVote?.answer_id ? `2px solid ${ACCENT}` : "2px solid transparent",
                     opacity: a.id === myVote?.answer_id ? 1 : 0.5,
                   }}>
                     {a.text}
-                    {a.id === myVote?.answer_id && <span style={{ fontSize: 12, color: YELLOW, marginLeft: 8 }}>← your vote</span>}
+                    {a.id === myVote?.answer_id && <span style={{ fontSize: 12, color: ACCENT, marginLeft: 8 }}>← your vote</span>}
                   </div>
                 ))}
               </div>
@@ -766,7 +766,7 @@ export default function Play({ params }) {
                         padding: "16px 18px", textAlign: "left",
                         fontSize: 17, fontWeight: 700, color: "white",
                         background: isSelected ? "rgba(255,255,255,0.22)" : "rgba(255,255,255,0.08)",
-                        border: isSelected ? `2px solid ${YELLOW}` : "2px solid rgba(255,255,255,0.12)",
+                        border: isSelected ? `2px solid ${ACCENT}` : "2px solid rgba(255,255,255,0.12)",
                         opacity: isOwn ? 0.3 : 1,
                       }}
                     >
@@ -778,7 +778,7 @@ export default function Play({ params }) {
               <button
                 onClick={submitVote}
                 disabled={!selectedAnswerId || submittingVote}
-                style={{ background: YELLOW, color: "#000", fontSize: 20, fontWeight: 900, padding: "18px", width: "100%", display: "block" }}
+                style={{ background: ACCENT, color: "#000", fontSize: 20, fontWeight: 900, padding: "18px", width: "100%", display: "block" }}
               >
                 {submittingVote ? "Voting…" : "Vote"}
               </button>
@@ -821,8 +821,8 @@ export default function Play({ params }) {
               <div style={{ fontSize: 17, fontWeight: 800, color: "rgba(255,255,255,0.85)", marginBottom: 10 }}>
                 The Real Answer
               </div>
-              <div style={{ background: "rgba(251,223,84,0.15)", border: `2px solid ${YELLOW}`, padding: "14px 18px" }}>
-                <div style={{ fontSize: 20, fontWeight: 900, color: YELLOW }}>{realAnswer.text}</div>
+              <div style={{ background: "rgba(240,144,106,0.15)", border: `2px solid ${ACCENT}`, padding: "14px 18px" }}>
+                <div style={{ fontSize: 20, fontWeight: 900, color: ACCENT }}>{realAnswer.text}</div>
                 {(() => {
                   const correctVoters = currentVotes
                     .filter(v => v.answer_id === realAnswer.id)
@@ -833,7 +833,7 @@ export default function Play({ params }) {
                       <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 4, marginTop: 6 }}>
                         <span style={{ fontSize: 13, fontWeight: 800 }}>{correctVoters.join(", ")}</span>
                         <span style={{ fontSize: 13, opacity: 0.55, fontWeight: 600 }}>guessed right</span>
-                        <span style={{ fontSize: 13, fontWeight: 800, color: YELLOW }}>+1 each</span>
+                        <span style={{ fontSize: 13, fontWeight: 800, color: ACCENT }}>+1 each</span>
                       </div>
                     )
                     : <div style={{ fontSize: 13, opacity: 0.4, fontWeight: 600, marginTop: 6 }}>Nobody got it!</div>
@@ -856,7 +856,7 @@ export default function Play({ params }) {
                     .map(v => players.find(p => p.id === v.voter_id)?.name)
                     .filter(Boolean)
                   return (
-                    <div key={a.id} style={{ background: "rgba(0,0,0,0.18)", padding: "12px 16px" }}>
+                    <div key={a.id} style={{ background: "#8C4D68", padding: "12px 16px" }}>
                       <div style={{ fontSize: 17, fontWeight: 700, marginBottom: 6 }}>{a.text}</div>
                       <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 5 }}>
                         <span style={{ fontSize: 13, opacity: 0.5, fontWeight: 600 }}>by</span>
@@ -865,7 +865,7 @@ export default function Play({ params }) {
                           <>
                             <span style={{ fontSize: 13, opacity: 0.5, fontWeight: 600 }}>· fooled</span>
                             <span style={{ fontSize: 14, fontWeight: 800 }}>{fooled.join(", ")}</span>
-                            <span style={{ fontSize: 13, fontWeight: 800, color: YELLOW }}>+{fooled.length}</span>
+                            <span style={{ fontSize: 13, fontWeight: 800, color: ACCENT }}>+{fooled.length}</span>
                           </>
                         ) : (
                           <span style={{ fontSize: 13, opacity: 0.4, fontWeight: 600 }}>· nobody fooled</span>
@@ -888,7 +888,7 @@ export default function Play({ params }) {
                 <div key={p.id} style={{ display: "flex" }}>
                   <div style={{
                     padding: "13px 0", minWidth: 56, flexShrink: 0,
-                    background: i === 0 ? YELLOW : "rgba(0,0,0,0.28)",
+                    background: i === 0 ? ACCENT : "#94536D",
                     color: i === 0 ? "#000" : "white",
                     fontSize: 22, fontWeight: 900,
                     display: "flex", alignItems: "center", justifyContent: "center",
@@ -897,7 +897,7 @@ export default function Play({ params }) {
                   </div>
                   <div style={{
                     padding: "13px 16px", flex: 1,
-                    background: "rgba(0,0,0,0.15)",
+                    background: "#A05A72",
                     display: "flex", flexDirection: "column", justifyContent: "center",
                   }}>
                     <div style={{ fontSize: 16, fontWeight: 700 }}>
@@ -917,7 +917,7 @@ export default function Play({ params }) {
             <button
               onClick={nextDrawing}
               disabled={advancing}
-              style={{ background: YELLOW, color: "#000", fontSize: 20, fontWeight: 900, padding: "20px", width: "100%", display: "block" }}
+              style={{ background: ACCENT, color: "#000", fontSize: 20, fontWeight: 900, padding: "20px", width: "100%", display: "block" }}
             >
               {advancing ? "…" : isLast ? "See Final Scores →" : "Next Drawing →"}
             </button>

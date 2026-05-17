@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation"
 import { supabase } from "../lib/supabase"
 
 const BG = "#B56576"
-const YELLOW = "#FBDF54"
+const ACCENT = "#F0906A"
 
 const WORDS_A = [
   "MAPLE","RIVER","OCEAN","VELVET","COPPER","SILVER","EMBER","FOREST","CLOUD",
@@ -144,7 +144,7 @@ export default function Home() {
         <button
           onClick={onCreateClick}
           disabled={isCreating}
-          style={{ background: YELLOW, color: "#000", fontSize: 22, fontWeight: 900, padding: "22px 40px", width: "100%", display: "block" }}
+          style={{ background: ACCENT, color: "#000", fontSize: 22, fontWeight: 900, padding: "22px 40px", width: "100%", display: "block" }}
         >
           {isCreating ? "Creating…" : "Create Game"}
         </button>
@@ -172,7 +172,7 @@ export default function Home() {
       </div>
 
       {!!error && (
-        <p style={{ color: YELLOW, marginTop: 20, fontSize: 14, fontWeight: 600, textAlign: "center" }}>
+        <p style={{ color: ACCENT, marginTop: 20, fontSize: 14, fontWeight: 600, textAlign: "center" }}>
           Error: {error}
         </p>
       )}
