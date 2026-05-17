@@ -222,7 +222,7 @@ export default function Lobby({ params }) {
       {/* Join form */}
       {!me && (
         <div style={{ padding: "28px 24px 0" }}>
-          <div style={{ fontSize: 11, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.15em", color: "rgba(255,255,255,0.4)", marginBottom: 14 }}>
+          <div style={{ fontSize: 17, fontWeight: 800, color: "rgba(255,255,255,0.85)", marginBottom: 14 }}>
             Join Game
           </div>
           {!savedProfile && (
@@ -249,17 +249,33 @@ export default function Lobby({ params }) {
 
       {/* Players */}
       <div style={{ padding: "28px 24px 40px" }}>
-        <div style={{ fontSize: 11, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.15em", color: "rgba(255,255,255,0.4)", marginBottom: 14 }}>
+        <div style={{ fontSize: 17, fontWeight: 800, color: "rgba(255,255,255,0.85)", marginBottom: 14 }}>
           Players
         </div>
-        <div style={{ background: "#245E5C", padding: "4px 14px 10px", borderTop: "3px solid rgba(255,255,255,0.30)" }}>
-          {humanPlayers.length === 0 && <div style={{ fontSize: 14, opacity: 0.65, fontStyle: "italic", paddingTop: 10 }}>No players yet</div>}
-          {humanPlayers.map(p => (
-            <div key={p.id} style={{ padding: "10px 0", borderBottom: "1px solid rgba(255,255,255,0.12)" }}>
-              <span style={{ fontSize: 17, fontWeight: 700 }}>
-                {p.name}
-                {p.id === myPlayerId && <span style={{ fontSize: 12, fontWeight: 600, opacity: 0.65, marginLeft: 6 }}>you</span>}
-              </span>
+        <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
+          {humanPlayers.length === 0 && (
+            <div style={{ fontSize: 15, opacity: 0.65, fontStyle: "italic", padding: "12px 0" }}>No players yet</div>
+          )}
+          {humanPlayers.map((p, i) => (
+            <div key={p.id} style={{ display: "flex" }}>
+              <div style={{
+                padding: "13px 0", minWidth: 48, flexShrink: 0,
+                background: "#1C5250",
+                fontSize: 18, fontWeight: 900, color: "white",
+                display: "flex", alignItems: "center", justifyContent: "center",
+              }}>
+                {i + 1}
+              </div>
+              <div style={{
+                padding: "13px 16px", flex: 1,
+                background: "#245E5C",
+                display: "flex", alignItems: "center",
+              }}>
+                <div style={{ fontSize: 17, fontWeight: 700 }}>
+                  {p.name}
+                  {p.id === myPlayerId && <span style={{ fontSize: 12, opacity: 0.65, marginLeft: 6 }}>you</span>}
+                </div>
+              </div>
             </div>
           ))}
         </div>
