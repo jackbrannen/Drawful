@@ -33,6 +33,7 @@ Rules:
 - No letters, numbers, or text-based humor — prompts must be drawable.
 - Vary prompt length — some should be 2–3 words, some 4–6, some longer. Don't let any one length dominate.
 - Vary structure: at least 10 should be compound nouns or hybrid objects ("half X, half Y"), at least 10 should be location/situation-based ("inside a X, a Y is happening"), and the rest can be "a [character] doing [wrong thing]" style.
+- At least 10 prompts must use the placeholder [Player] (exactly as written, with square brackets) in place of a specific person's name. The [Player] slot will be filled in with a real player's name at game time. Examples: "[Player] being chased through a mall by a goose", "a judge sentencing [Player] for stealing a cracker", "the moment [Player] realized the bear was friendly". Use [Player] only once per prompt, and make sure it's a scene that's still clearly drawable.
 - Do not number the prompts.
 
 Format: one prompt per line, no numbering, no quotes, no punctuation at the end.${excludeSection}`,
