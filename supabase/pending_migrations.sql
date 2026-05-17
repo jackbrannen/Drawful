@@ -1,58 +1,53 @@
--- ─── RPC: drawful_start_game ──────────────────────────────────────────────────
--- Assigns prompts, seats players, kicks off the drawing timer.
--- If a prompt contains [Player], replaces it with a random other player's first name.
+-- ─── RPC: drawful_submit_vote ─────────────────────────────────────────────────
+-- Saves a vote. When all non-artists have voted, calculates scores and
+-- advances to results. Scoring: 1 pt for correct guess, 1 pt per person fooled.
 
-CREATE OR REPLACE FUNCTION drawful_start_game(p_code text)
+CREATE OR REPLACE FUNCTION drawful_submit_vote(
+  p_code text,
+  p_drawing_player_id uuid,
+  p_voter_id uuid,
+  p_answer_id uuid
+)
 RETURNS void LANGUAGE plpgsql AS $$
 DECLARE
-  v_player_ids uuid[];
-  v_n integer;
-  v_prompt_texts text[];
-  v_prompt text;
-  v_other_name text;
+  v_total_non_artist integer;
+  v_voted integer;
 BEGIN
-  -- Collect player IDs ordered by join time and assign seats
-  SELECT array_agg(id ORDER BY created_at) INTO v_player_ids
-  FROM drawful_players WHERE game_code = p_code;
+  INSERT INTO drawful_votes(game_code, drawing_player_id, voter_id, answer_id)
+  VALUES (p_code, p_drawing_player_id, p_voter_id, p_answer_id)
+  ON CONFLICT (game_code, drawing_player_id, voter_id) DO NOTHING;
 
-  v_n := array_length(v_player_ids, 1);
+  SELECT count(*) INTO v_total_non_artist
+  FROM drawful_players WHERE game_code = p_code AND id <> p_drawing_player_id;
 
-  FOR i IN 1..v_n LOOP
-    UPDATE drawful_players SET seat = i - 1 WHERE id = v_player_ids[i];
-  END LOOP;
+  SELECT count(*) INTO v_voted
+  FROM drawful_votes WHERE game_code = p_code AND drawing_player_id = p_drawing_player_id;
 
-  -- Pull unused prompts (one per player)
-  SELECT array_agg(text ORDER BY random()) INTO v_prompt_texts
-  FROM (
-    SELECT text, id FROM drawful_prompts WHERE used_at IS NULL ORDER BY random() LIMIT v_n
-  ) sub;
+  IF v_voted >= v_total_non_artist THEN
+    -- 1 pt per correct guess
+    UPDATE drawful_players p
+    SET score = score + 1
+    FROM drawful_votes v
+    JOIN drawful_answers a ON a.id = v.answer_id
+    WHERE v.game_code = p_code
+      AND v.drawing_player_id = p_drawing_player_id
+      AND a.is_real = true
+      AND p.id = v.voter_id;
 
-  -- Mark them used
-  UPDATE drawful_prompts
-  SET used_at = now()
-  WHERE text = ANY(v_prompt_texts) AND used_at IS NULL;
+    -- 1 pt per vote received on each fake answer
+    UPDATE drawful_players p
+    SET score = score + (
+      SELECT count(*)
+      FROM drawful_votes v
+      JOIN drawful_answers a ON a.id = v.answer_id
+      WHERE v.game_code = p_code
+        AND v.drawing_player_id = p_drawing_player_id
+        AND a.author_id = p.id
+        AND a.is_real = false
+    )
+    WHERE game_code = p_code AND id <> p_drawing_player_id;
 
-  -- Assign prompts, replacing [Player] with a random other player's first name
-  FOR i IN 1..v_n LOOP
-    v_prompt := v_prompt_texts[i];
-
-    IF v_prompt LIKE '%[Player]%' THEN
-      SELECT first_name INTO v_other_name
-      FROM drawful_players
-      WHERE game_code = p_code AND id <> v_player_ids[i]
-      ORDER BY random() LIMIT 1;
-
-      v_prompt := REPLACE(v_prompt, '[Player]', v_other_name);
-    END IF;
-
-    UPDATE drawful_players SET prompt = v_prompt WHERE id = v_player_ids[i];
-  END LOOP;
-
-  -- Start game
-  UPDATE drawful_games
-  SET phase = 'drawing',
-      drawing_started_at = now(),
-      current_drawing_index = 0
-  WHERE code = p_code;
+    UPDATE drawful_games SET phase = 'results' WHERE code = p_code;
+  END IF;
 END;
 $$;

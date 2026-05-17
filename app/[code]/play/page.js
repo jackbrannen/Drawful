@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
 import { supabase } from "../../../lib/supabase"
 
-const BG = "#7B2C2C"
+const BG = "#B56576"
 const YELLOW = "#FBDF54"
 const DRAW_SECONDS = 90
 
@@ -180,17 +180,17 @@ function DrawingCanvas({ onExport, onFirstMark }) {
           { mode: "bucket", icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m19 11-8-8-8.5 8.5a5.5 5.5 0 0 0 7.78 7.78Z"/><path d="m5 3 5 5"/><path d="M22 22c0-1.2-.2-2-.8-3-1.4 0-2.2 1.8-2.2 3"/></svg> },
         ].map(({ mode, icon }) => (
           <button key={mode} onClick={() => handleSetTool(mode === "eraser" && toolMode === "eraser" ? "pen" : mode === "bucket" && toolMode === "bucket" ? "pen" : mode)}
-            style={{ background: toolMode === mode ? YELLOW : "rgba(255,255,255,0.15)", color: toolMode === mode ? "#000" : "white", width: 44, height: 44, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+            style={{ background: toolMode === mode ? YELLOW : "rgba(255,255,255,0.15)", color: toolMode === mode ? "#000" : "white", width: 44, height: 44, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
             {icon}
           </button>
         ))}
-        <button onClick={handleUndo} style={{ background: "rgba(255,255,255,0.15)", color: "white", width: 44, height: 44, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+        <button onClick={handleUndo} style={{ background: "rgba(255,255,255,0.15)", color: "white", width: 44, height: 44, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"/></svg>
         </button>
-        <button onClick={handleRedo} style={{ background: "rgba(255,255,255,0.15)", color: "white", width: 44, height: 44, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+        <button onClick={handleRedo} style={{ background: "rgba(255,255,255,0.15)", color: "white", width: 44, height: 44, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 7v6h-6"/><path d="M3 17a9 9 0 0 1 9-9 9 9 0 0 1 6 2.3L21 13"/></svg>
         </button>
-        <button onClick={handleClear} style={{ background: "rgba(255,255,255,0.10)", color: "rgba(255,255,255,0.6)", width: 44, height: 44, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+        <button onClick={handleClear} style={{ background: "rgba(255,255,255,0.10)", color: "rgba(255,255,255,0.6)", width: 44, height: 44, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
         </button>
       </div>
@@ -200,7 +200,7 @@ function DrawingCanvas({ onExport, onFirstMark }) {
           const d = 5 + i * 4.5, active = brushSize === sz && toolMode !== "bucket"
           return (
             <button key={sz} onClick={() => handleSizeChange(sz)} disabled={toolMode === "bucket"}
-              style={{ width: 38, height: 38, borderRadius: 6, flexShrink: 0, background: active ? "rgba(255,255,255,0.18)" : "transparent", display: "flex", alignItems: "center", justifyContent: "center", border: active ? `2px solid ${YELLOW}` : "2px solid transparent" }}>
+              style={{ width: 38, height: 38, flexShrink: 0, background: active ? "rgba(255,255,255,0.18)" : "transparent", display: "flex", alignItems: "center", justifyContent: "center", border: active ? `2px solid ${YELLOW}` : "2px solid transparent" }}>
               <div style={{ width: d, height: d, borderRadius: "50%", background: "white" }} />
             </button>
           )
@@ -210,12 +210,12 @@ function DrawingCanvas({ onExport, onFirstMark }) {
       <div style={{ display: "flex", flexWrap: "wrap", gap: 5, marginBottom: 10 }}>
         {PALETTE.map(c => (
           <button key={c} onClick={() => handleColorClick(c)}
-            style={{ width: 28, height: 28, borderRadius: 5, background: c, flexShrink: 0,
+            style={{ width: 28, height: 28, background: c, flexShrink: 0,
               border: color === c && toolMode !== "eraser" ? "3px solid white" : c === "#FFFFFF" || c === "#DDDDDD" ? "1px solid rgba(255,255,255,0.25)" : "2px solid transparent" }} />
         ))}
       </div>
 
-      <div style={{ borderRadius: 6, overflow: "hidden", cursor: toolMode === "bucket" ? "crosshair" : "default" }}>
+      <div style={{ overflow: "hidden", cursor: toolMode === "bucket" ? "crosshair" : "default" }}>
         <canvas ref={canvasRef} style={{ display: "block", touchAction: "none" }} />
       </div>
     </div>
@@ -517,13 +517,23 @@ export default function Play({ params }) {
             {winners.length === 1 ? `${winners[0].name} wins!` : "It's a tie!"}
           </p>
         </div>
-        <div style={{ padding: "0 24px 48px" }}>
+        <div style={{ padding: "0 24px 48px", display: "flex", flexDirection: "column", gap: 3 }}>
           {sorted.map((p, i) => (
-            <div key={p.id} style={{ display: "flex", alignItems: "center", gap: 14, padding: "14px 0", borderBottom: "1px solid rgba(255,255,255,0.1)" }}>
-              <div style={{ fontSize: 24, fontWeight: 900, color: i === 0 ? YELLOW : "white", minWidth: 64 }}>
-                {p.score.toLocaleString()}
+            <div key={p.id} style={{ display: "flex" }}>
+              <div style={{
+                padding: "16px 0", minWidth: 64, flexShrink: 0,
+                background: i === 0 ? YELLOW : "rgba(0,0,0,0.28)",
+                color: i === 0 ? "#000" : "white",
+                fontSize: 26, fontWeight: 900,
+                display: "flex", alignItems: "center", justifyContent: "center",
+              }}>
+                {p.score}
               </div>
-              <div>
+              <div style={{
+                padding: "16px 18px", flex: 1,
+                background: "rgba(0,0,0,0.15)",
+                display: "flex", flexDirection: "column", justifyContent: "center",
+              }}>
                 <div style={{ fontSize: 18, fontWeight: 700 }}>
                   {p.name}{p.id === myPlayerId && <span style={{ fontSize: 12, opacity: 0.4, marginLeft: 6 }}>you</span>}
                 </div>
@@ -535,7 +545,7 @@ export default function Play({ params }) {
         <div style={{ padding: "0 24px 48px" }}>
           <button
             onClick={() => router.replace(`/${code}`)}
-            style={{ background: "rgba(255,255,255,0.12)", color: "white", fontSize: 16, fontWeight: 700, padding: "16px 28px", width: "100%", borderRadius: 8 }}
+            style={{ background: "rgba(255,255,255,0.12)", color: "white", fontSize: 16, fontWeight: 700, padding: "16px 28px", width: "100%" }}
           >Back to lobby</button>
         </div>
       </div>
@@ -595,7 +605,7 @@ export default function Play({ params }) {
           <button
             onClick={() => submitDrawing(false)}
             disabled={submittingDrawing}
-            style={{ background: YELLOW, color: "#000", fontSize: 20, fontWeight: 900, padding: "18px", width: "100%", display: "block", marginTop: 16, borderRadius: 8 }}
+            style={{ background: YELLOW, color: "#000", fontSize: 20, fontWeight: 900, padding: "18px", width: "100%", display: "block", marginTop: 16 }}
           >
             {submittingDrawing ? "Submitting…" : "Done Drawing"}
           </button>
@@ -676,13 +686,13 @@ export default function Play({ params }) {
                 style={{
                   width: "100%", background: "rgba(255,255,255,0.15)", color: "white",
                   fontSize: 18, fontWeight: 600, padding: "14px 16px", borderRadius: 8,
-                  resize: "none", display: "block", marginBottom: 10,
+                  resize: "none", display: "block", marginBottom: 10, borderRadius: 0,
                 }}
               />
               <button
                 onClick={submitAnswer}
                 disabled={!answerText.trim() || submittingAnswer}
-                style={{ background: YELLOW, color: "#000", fontSize: 20, fontWeight: 900, padding: "18px", width: "100%", display: "block", borderRadius: 8 }}
+                style={{ background: YELLOW, color: "#000", fontSize: 20, fontWeight: 900, padding: "18px", width: "100%", display: "block" }}
               >
                 {submittingAnswer ? "Submitting…" : "Submit"}
               </button>
@@ -726,7 +736,7 @@ export default function Play({ params }) {
               <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                 {currentAnswers.map(a => (
                   <div key={a.id} style={{
-                    padding: "16px 18px", borderRadius: 10, fontSize: 17, fontWeight: 700,
+                    padding: "16px 18px", fontSize: 17, fontWeight: 700,
                     background: a.id === myVote?.answer_id ? "rgba(255,255,255,0.22)" : "rgba(255,255,255,0.08)",
                     border: a.id === myVote?.answer_id ? `2px solid ${YELLOW}` : "2px solid transparent",
                     opacity: a.id === myVote?.answer_id ? 1 : 0.5,
@@ -753,7 +763,7 @@ export default function Play({ params }) {
                       onClick={() => !isOwn && setSelectedAnswerId(a.id)}
                       disabled={isOwn}
                       style={{
-                        padding: "16px 18px", borderRadius: 10, textAlign: "left",
+                        padding: "16px 18px", textAlign: "left",
                         fontSize: 17, fontWeight: 700, color: "white",
                         background: isSelected ? "rgba(255,255,255,0.22)" : "rgba(255,255,255,0.08)",
                         border: isSelected ? `2px solid ${YELLOW}` : "2px solid rgba(255,255,255,0.12)",
@@ -768,7 +778,7 @@ export default function Play({ params }) {
               <button
                 onClick={submitVote}
                 disabled={!selectedAnswerId || submittingVote}
-                style={{ background: YELLOW, color: "#000", fontSize: 20, fontWeight: 900, padding: "18px", width: "100%", display: "block", borderRadius: 8 }}
+                style={{ background: YELLOW, color: "#000", fontSize: 20, fontWeight: 900, padding: "18px", width: "100%", display: "block" }}
               >
                 {submittingVote ? "Voting…" : "Vote"}
               </button>
@@ -811,7 +821,7 @@ export default function Play({ params }) {
               <div style={{ fontSize: 17, fontWeight: 800, color: "rgba(255,255,255,0.85)", marginBottom: 10 }}>
                 The Real Answer
               </div>
-              <div style={{ background: "rgba(251,223,84,0.15)", border: `2px solid ${YELLOW}`, borderRadius: 10, padding: "14px 18px" }}>
+              <div style={{ background: "rgba(251,223,84,0.15)", border: `2px solid ${YELLOW}`, padding: "14px 18px" }}>
                 <div style={{ fontSize: 20, fontWeight: 900, color: YELLOW }}>{realAnswer.text}</div>
                 {(() => {
                   const correctVoters = currentVotes
@@ -823,7 +833,7 @@ export default function Play({ params }) {
                       <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 4, marginTop: 6 }}>
                         <span style={{ fontSize: 13, fontWeight: 800 }}>{correctVoters.join(", ")}</span>
                         <span style={{ fontSize: 13, opacity: 0.55, fontWeight: 600 }}>guessed right</span>
-                        <span style={{ fontSize: 13, fontWeight: 800, color: YELLOW }}>· +1000 each</span>
+                        <span style={{ fontSize: 13, fontWeight: 800, color: YELLOW }}>+1 each</span>
                       </div>
                     )
                     : <div style={{ fontSize: 13, opacity: 0.4, fontWeight: 600, marginTop: 6 }}>Nobody got it!</div>
@@ -846,7 +856,7 @@ export default function Play({ params }) {
                     .map(v => players.find(p => p.id === v.voter_id)?.name)
                     .filter(Boolean)
                   return (
-                    <div key={a.id} style={{ background: "rgba(0,0,0,0.22)", borderRadius: 10, padding: "12px 16px" }}>
+                    <div key={a.id} style={{ background: "rgba(0,0,0,0.18)", padding: "12px 16px" }}>
                       <div style={{ fontSize: 17, fontWeight: 700, marginBottom: 6 }}>{a.text}</div>
                       <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 5 }}>
                         <span style={{ fontSize: 13, opacity: 0.5, fontWeight: 600 }}>by</span>
@@ -855,7 +865,7 @@ export default function Play({ params }) {
                           <>
                             <span style={{ fontSize: 13, opacity: 0.5, fontWeight: 600 }}>· fooled</span>
                             <span style={{ fontSize: 14, fontWeight: 800 }}>{fooled.join(", ")}</span>
-                            <span style={{ fontSize: 13, fontWeight: 800, color: YELLOW }}>· +{fooled.length * 500}</span>
+                            <span style={{ fontSize: 13, fontWeight: 800, color: YELLOW }}>+{fooled.length}</span>
                           </>
                         ) : (
                           <span style={{ fontSize: 13, opacity: 0.4, fontWeight: 600 }}>· nobody fooled</span>
@@ -873,19 +883,31 @@ export default function Play({ params }) {
             <div style={{ fontSize: 17, fontWeight: 800, color: "rgba(255,255,255,0.85)", marginBottom: 10 }}>
               Scores
             </div>
-            {[...players].sort((a, b) => b.score - a.score).map((p, i) => (
-              <div key={p.id} style={{ display: "flex", alignItems: "center", gap: 14, padding: "10px 0", borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
-                <div style={{ fontSize: 20, fontWeight: 900, color: i === 0 ? YELLOW : "white", minWidth: 56 }}>
-                  {p.score.toLocaleString()}
-                </div>
-                <div>
-                  <div style={{ fontSize: 16, fontWeight: 700 }}>
-                    {p.name}{p.id === myPlayerId && <span style={{ fontSize: 12, opacity: 0.4, marginLeft: 6 }}>you</span>}
+            <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
+              {[...players].sort((a, b) => b.score - a.score).map((p, i) => (
+                <div key={p.id} style={{ display: "flex" }}>
+                  <div style={{
+                    padding: "13px 0", minWidth: 56, flexShrink: 0,
+                    background: i === 0 ? YELLOW : "rgba(0,0,0,0.28)",
+                    color: i === 0 ? "#000" : "white",
+                    fontSize: 22, fontWeight: 900,
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                  }}>
+                    {p.score}
                   </div>
-                  <div style={{ fontSize: 12, opacity: 0.35, fontWeight: 700 }}>#{i + 1}</div>
+                  <div style={{
+                    padding: "13px 16px", flex: 1,
+                    background: "rgba(0,0,0,0.15)",
+                    display: "flex", flexDirection: "column", justifyContent: "center",
+                  }}>
+                    <div style={{ fontSize: 16, fontWeight: 700 }}>
+                      {p.name}{p.id === myPlayerId && <span style={{ fontSize: 12, opacity: 0.4, marginLeft: 6 }}>you</span>}
+                    </div>
+                    <div style={{ fontSize: 12, opacity: 0.35, fontWeight: 700 }}>#{i + 1}</div>
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </div>
 
@@ -895,7 +917,7 @@ export default function Play({ params }) {
             <button
               onClick={nextDrawing}
               disabled={advancing}
-              style={{ background: YELLOW, color: "#000", fontSize: 20, fontWeight: 900, padding: "20px", width: "100%", display: "block", borderRadius: 8 }}
+              style={{ background: YELLOW, color: "#000", fontSize: 20, fontWeight: 900, padding: "20px", width: "100%", display: "block" }}
             >
               {advancing ? "…" : isLast ? "See Final Scores →" : "Next Drawing →"}
             </button>
