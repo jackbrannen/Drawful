@@ -9,6 +9,22 @@ const ACCENT = "#F5E8D8"
 const MUTED = "rgba(255,255,255,0.65)"
 const DRAW_SECONDS = 90
 
+function playChirp() {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)()
+    const osc = ctx.createOscillator()
+    const gain = ctx.createGain()
+    osc.connect(gain)
+    gain.connect(ctx.destination)
+    osc.frequency.setValueAtTime(523, ctx.currentTime)
+    osc.frequency.setValueAtTime(659, ctx.currentTime + 0.08)
+    gain.gain.setValueAtTime(0.25, ctx.currentTime)
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.25)
+    osc.start(ctx.currentTime)
+    osc.stop(ctx.currentTime + 0.25)
+  } catch {}
+}
+
 const PALETTE = [
   "#000000","#2D2D2D","#666666","#AAAAAA","#DDDDDD","#FFFFFF",
   "#6B0000","#5C3000","#1A4D00","#003D3D","#002B6B","#3D006B",
@@ -251,6 +267,7 @@ export default function Play({ params }) {
   const getExportRef = useRef(null)
   const prevPhaseRef = useRef(null)
   const prevDrawingIndexRef = useRef(-1)
+  const soundTriggerRef = useRef(null)
 
   const me = players.find(p => p.id === myPlayerId)
 
@@ -306,6 +323,20 @@ export default function Play({ params }) {
       setSubmittingVote(false)
     }
   }, [game?.current_drawing_index])
+
+  // Sound alerts on phase transitions requiring this player's action
+  useEffect(() => {
+    if (!game || !me) return
+    const curr = { phase: game.phase, drawingIndex: game.current_drawing_index }
+    const prev = soundTriggerRef.current
+    soundTriggerRef.current = curr
+    if (!prev) return // skip first load
+    const changed = prev.phase !== curr.phase || prev.drawingIndex !== curr.drawingIndex
+    if (!changed) return
+    if (curr.phase === "drawing") playChirp()
+    else if (curr.phase === "guessing" && !amArtist) playChirp()
+    else if (curr.phase === "voting" && !amArtist) playChirp()
+  }, [game?.phase, game?.current_drawing_index, myPlayerId, amArtist])
 
   // Drawing timer
   useEffect(() => {
