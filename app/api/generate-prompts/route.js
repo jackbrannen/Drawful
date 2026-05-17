@@ -45,6 +45,7 @@ Format: one prompt per line, no numbering, no quotes, no punctuation at the end.
       .split("\n")
       .map(l => l.trim())
       .filter(l => l.length > 0)
+      .map(l => l.charAt(0).toUpperCase() + l.slice(1))
       .slice(0, 50)
 
     if (prompts.length === 0) {

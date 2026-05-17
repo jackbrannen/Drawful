@@ -459,11 +459,13 @@ export default function Play({ params }) {
   async function submitAnswer() {
     if (!answerText.trim() || submittingAnswer || myAnswer || amArtist) return
     setSubmittingAnswer(true)
+    const trimmed = answerText.trim()
+    const capitalized = trimmed.charAt(0).toUpperCase() + trimmed.slice(1)
     const { error } = await supabase.rpc("drawful_submit_answer", {
       p_code: code,
       p_drawing_player_id: currentArtist.id,
       p_author_id: me.id,
-      p_text: answerText.trim(),
+      p_text: capitalized,
     })
     if (error) { alert("Error: " + error.message); setSubmittingAnswer(false); return }
     await loadState()
@@ -517,12 +519,16 @@ export default function Play({ params }) {
         </div>
         <div style={{ padding: "0 24px 48px" }}>
           {sorted.map((p, i) => (
-            <div key={p.id} style={{ display: "flex", alignItems: "center", gap: 12, padding: "14px 0", borderBottom: "1px solid rgba(255,255,255,0.1)" }}>
-              <div style={{ fontSize: 18, fontWeight: 900, opacity: 0.4, width: 24, textAlign: "center" }}>{i + 1}</div>
-              <div style={{ flex: 1, fontSize: 18, fontWeight: 700 }}>
-                {p.name}{p.id === myPlayerId && <span style={{ fontSize: 12, opacity: 0.4, marginLeft: 6 }}>you</span>}
+            <div key={p.id} style={{ display: "flex", alignItems: "center", gap: 14, padding: "14px 0", borderBottom: "1px solid rgba(255,255,255,0.1)" }}>
+              <div style={{ fontSize: 24, fontWeight: 900, color: i === 0 ? YELLOW : "white", minWidth: 64 }}>
+                {p.score.toLocaleString()}
               </div>
-              <div style={{ fontSize: 22, fontWeight: 900, color: i === 0 ? YELLOW : "white" }}>{p.score}</div>
+              <div>
+                <div style={{ fontSize: 18, fontWeight: 700 }}>
+                  {p.name}{p.id === myPlayerId && <span style={{ fontSize: 12, opacity: 0.4, marginLeft: 6 }}>you</span>}
+                </div>
+                <div style={{ fontSize: 12, opacity: 0.35, fontWeight: 700 }}>#{i + 1}</div>
+              </div>
             </div>
           ))}
         </div>
@@ -801,9 +807,9 @@ export default function Play({ params }) {
         <div style={{ padding: "20px 24px" }}>
           {/* Real answer */}
           {realAnswer && (
-            <div style={{ marginBottom: 20 }}>
-              <div style={{ fontSize: 11, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.15em", opacity: 0.45, marginBottom: 8 }}>
-                THE REAL ANSWER
+            <div style={{ marginBottom: 24 }}>
+              <div style={{ fontSize: 17, fontWeight: 800, color: "rgba(255,255,255,0.85)", marginBottom: 10 }}>
+                The Real Answer
               </div>
               <div style={{ background: "rgba(251,223,84,0.15)", border: `2px solid ${YELLOW}`, borderRadius: 10, padding: "14px 18px" }}>
                 <div style={{ fontSize: 20, fontWeight: 900, color: YELLOW }}>{realAnswer.text}</div>
@@ -813,8 +819,14 @@ export default function Play({ params }) {
                     .map(v => players.find(p => p.id === v.voter_id)?.name)
                     .filter(Boolean)
                   return correctVoters.length > 0
-                    ? <div style={{ fontSize: 13, opacity: 0.7, marginTop: 4 }}>{correctVoters.join(", ")} guessed right · +1000 each</div>
-                    : <div style={{ fontSize: 13, opacity: 0.4, marginTop: 4 }}>Nobody got it!</div>
+                    ? (
+                      <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 4, marginTop: 6 }}>
+                        <span style={{ fontSize: 13, fontWeight: 800 }}>{correctVoters.join(", ")}</span>
+                        <span style={{ fontSize: 13, opacity: 0.55, fontWeight: 600 }}>guessed right</span>
+                        <span style={{ fontSize: 13, fontWeight: 800, color: YELLOW }}>· +1000 each</span>
+                      </div>
+                    )
+                    : <div style={{ fontSize: 13, opacity: 0.4, fontWeight: 600, marginTop: 6 }}>Nobody got it!</div>
                 })()}
               </div>
             </div>
@@ -822,9 +834,9 @@ export default function Play({ params }) {
 
           {/* Fake answers */}
           {fakeAnswers.length > 0 && (
-            <div style={{ marginBottom: 24 }}>
-              <div style={{ fontSize: 11, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.15em", opacity: 0.45, marginBottom: 8 }}>
-                THE FAKES
+            <div style={{ marginBottom: 28 }}>
+              <div style={{ fontSize: 17, fontWeight: 800, color: "rgba(255,255,255,0.85)", marginBottom: 10 }}>
+                The Fakes
               </div>
               <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                 {fakeAnswers.map(a => {
@@ -834,13 +846,20 @@ export default function Play({ params }) {
                     .map(v => players.find(p => p.id === v.voter_id)?.name)
                     .filter(Boolean)
                   return (
-                    <div key={a.id} style={{ background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 10, padding: "12px 16px" }}>
-                      <div style={{ fontSize: 17, fontWeight: 700, marginBottom: 4 }}>{a.text}</div>
-                      <div style={{ fontSize: 13, opacity: 0.5, fontWeight: 600 }}>
-                        written by {author?.name ?? "?"}
-                        {fooled.length > 0
-                          ? ` · fooled ${fooled.join(", ")} · +${fooled.length * 500} pts`
-                          : " · nobody was fooled"}
+                    <div key={a.id} style={{ background: "rgba(0,0,0,0.22)", borderRadius: 10, padding: "12px 16px" }}>
+                      <div style={{ fontSize: 17, fontWeight: 700, marginBottom: 6 }}>{a.text}</div>
+                      <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 5 }}>
+                        <span style={{ fontSize: 13, opacity: 0.5, fontWeight: 600 }}>by</span>
+                        <span style={{ fontSize: 14, fontWeight: 800 }}>{author?.name ?? "?"}</span>
+                        {fooled.length > 0 ? (
+                          <>
+                            <span style={{ fontSize: 13, opacity: 0.5, fontWeight: 600 }}>· fooled</span>
+                            <span style={{ fontSize: 14, fontWeight: 800 }}>{fooled.join(", ")}</span>
+                            <span style={{ fontSize: 13, fontWeight: 800, color: YELLOW }}>· +{fooled.length * 500}</span>
+                          </>
+                        ) : (
+                          <span style={{ fontSize: 13, opacity: 0.4, fontWeight: 600 }}>· nobody fooled</span>
+                        )}
                       </div>
                     </div>
                   )
@@ -851,16 +870,20 @@ export default function Play({ params }) {
 
           {/* Running scores */}
           <div>
-            <div style={{ fontSize: 11, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.15em", opacity: 0.45, marginBottom: 8 }}>
-              SCORES
+            <div style={{ fontSize: 17, fontWeight: 800, color: "rgba(255,255,255,0.85)", marginBottom: 10 }}>
+              Scores
             </div>
             {[...players].sort((a, b) => b.score - a.score).map((p, i) => (
-              <div key={p.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 0", borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
-                <div style={{ fontSize: 15, fontWeight: 900, opacity: 0.35, width: 20 }}>{i + 1}</div>
-                <div style={{ flex: 1, fontSize: 16, fontWeight: 700 }}>
-                  {p.name}{p.id === myPlayerId && <span style={{ fontSize: 12, opacity: 0.4, marginLeft: 6 }}>you</span>}
+              <div key={p.id} style={{ display: "flex", alignItems: "center", gap: 14, padding: "10px 0", borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
+                <div style={{ fontSize: 20, fontWeight: 900, color: i === 0 ? YELLOW : "white", minWidth: 56 }}>
+                  {p.score.toLocaleString()}
                 </div>
-                <div style={{ fontSize: 18, fontWeight: 900 }}>{p.score}</div>
+                <div>
+                  <div style={{ fontSize: 16, fontWeight: 700 }}>
+                    {p.name}{p.id === myPlayerId && <span style={{ fontSize: 12, opacity: 0.4, marginLeft: 6 }}>you</span>}
+                  </div>
+                  <div style={{ fontSize: 12, opacity: 0.35, fontWeight: 700 }}>#{i + 1}</div>
+                </div>
               </div>
             ))}
           </div>
