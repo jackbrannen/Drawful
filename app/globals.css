@@ -5,3 +5,4 @@ button { cursor: pointer; border: none; -webkit-tap-highlight-color: transparent
 button:active:not(:disabled) { transform: scale(0.91); filter: brightness(1.3); }
 button:disabled { opacity: 0.35; cursor: not-allowed; }
 input, select, textarea { font-family: inherit; outline: none; border: none; }
+input::placeholder, textarea::placeholder { color: rgba(255,255,255,0.6); opacity: 1; }
