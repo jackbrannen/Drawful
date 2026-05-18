@@ -6,6 +6,7 @@ import { supabase } from "../lib/supabase"
 
 const BG = "#307977"
 const ACCENT = "#F5E8D8"
+const WARM_LIGHT = "#3A9180"
 
 const WORDS_A = [
   "MAPLE","RIVER","OCEAN","VELVET","COPPER","SILVER","EMBER","FOREST","CLOUD",
@@ -157,14 +158,14 @@ export default function Home() {
             onChange={e => setJoinCode(e.target.value.toUpperCase())}
             onKeyDown={e => { if (e.key === "Enter") onJoin() }}
             style={{
-              flex: 1, minWidth: 0, background: "rgba(255,255,255,0.15)", color: "white",
+              flex: 1, minWidth: 0, background: WARM_LIGHT, color: "white",
               fontSize: 18, fontWeight: 800, padding: "18px 16px", textTransform: "uppercase",
               letterSpacing: "0.06em",
             }}
           />
           <button
             onClick={onJoin}
-            style={{ background: "rgba(255,255,255,0.15)", color: "white", fontSize: 18, fontWeight: 900, padding: "18px 20px", flexShrink: 0 }}
+            style={{ background: WARM_LIGHT, color: "white", fontSize: 18, fontWeight: 900, padding: "18px 20px", flexShrink: 0 }}
           >
             Join
           </button>
@@ -182,7 +183,7 @@ export default function Home() {
         disabled={isCreating}
         style={{
           position: "fixed", bottom: 20, left: "50%", transform: "translateX(-50%)",
-          background: "rgba(255,255,255,0.07)", color: "rgba(255,255,255,0.35)",
+          background: WARM_LIGHT, color: "rgba(255,255,255,0.35)",
           fontSize: 11, fontWeight: 700, padding: "8px 16px",
           letterSpacing: "0.1em", textTransform: "uppercase", whiteSpace: "nowrap",
         }}

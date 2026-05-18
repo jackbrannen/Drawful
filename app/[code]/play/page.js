@@ -7,6 +7,8 @@ import { supabase } from "../../../lib/supabase"
 const BG = "#307977"
 const ACCENT = "#F5E8D8"
 const MUTED = "rgba(255,255,255,0.65)"
+const WARM_LIGHT = "#3A9180"
+const MID = "#245E5C"
 const DRAW_SECONDS = 90
 
 function playChirp() {
@@ -197,17 +199,17 @@ function DrawingCanvas({ onExport, onFirstMark }) {
           { mode: "bucket", icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m19 11-8-8-8.5 8.5a5.5 5.5 0 0 0 7.78 7.78Z"/><path d="m5 3 5 5"/><path d="M22 22c0-1.2-.2-2-.8-3-1.4 0-2.2 1.8-2.2 3"/></svg> },
         ].map(({ mode, icon }) => (
           <button key={mode} onClick={() => handleSetTool(mode === "eraser" && toolMode === "eraser" ? "pen" : mode === "bucket" && toolMode === "bucket" ? "pen" : mode)}
-            style={{ background: toolMode === mode ? ACCENT : "rgba(255,255,255,0.15)", color: toolMode === mode ? "#000" : "white", width: 44, height: 44, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+            style={{ background: toolMode === mode ? ACCENT : WARM_LIGHT, color: toolMode === mode ? "#000" : "white", width: 44, height: 44, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
             {icon}
           </button>
         ))}
-        <button onClick={handleUndo} style={{ background: "rgba(255,255,255,0.15)", color: "white", width: 44, height: 44, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+        <button onClick={handleUndo} style={{ background: WARM_LIGHT, color: "white", width: 44, height: 44, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"/></svg>
         </button>
-        <button onClick={handleRedo} style={{ background: "rgba(255,255,255,0.15)", color: "white", width: 44, height: 44, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+        <button onClick={handleRedo} style={{ background: WARM_LIGHT, color: "white", width: 44, height: 44, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 7v6h-6"/><path d="M3 17a9 9 0 0 1 9-9 9 9 0 0 1 6 2.3L21 13"/></svg>
         </button>
-        <button onClick={handleClear} style={{ background: "rgba(255,255,255,0.10)", color: "rgba(255,255,255,0.6)", width: 44, height: 44, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+        <button onClick={handleClear} style={{ background: WARM_LIGHT, color: "rgba(255,255,255,0.6)", width: 44, height: 44, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
         </button>
       </div>
@@ -217,7 +219,7 @@ function DrawingCanvas({ onExport, onFirstMark }) {
           const d = 5 + i * 4.5, active = brushSize === sz && toolMode !== "bucket"
           return (
             <button key={sz} onClick={() => handleSizeChange(sz)} disabled={toolMode === "bucket"}
-              style={{ width: 38, height: 38, flexShrink: 0, background: active ? "rgba(255,255,255,0.18)" : "transparent", display: "flex", alignItems: "center", justifyContent: "center", border: active ? `2px solid ${ACCENT}` : "2px solid transparent" }}>
+              style={{ width: 38, height: 38, flexShrink: 0, background: active ? WARM_LIGHT : "transparent", display: "flex", alignItems: "center", justifyContent: "center", border: active ? `2px solid ${ACCENT}` : "2px solid transparent" }}>
               <div style={{ width: d, height: d, borderRadius: "50%", background: "white" }} />
             </button>
           )
@@ -590,7 +592,7 @@ export default function Play({ params }) {
         <div style={{ padding: "0 24px 48px" }}>
           <button
             onClick={() => router.replace(`/${code}`)}
-            style={{ background: "rgba(255,255,255,0.12)", color: "white", fontSize: 16, fontWeight: 700, padding: "16px 28px", width: "100%" }}
+            style={{ background: WARM_LIGHT, color: "white", fontSize: 16, fontWeight: 700, padding: "16px 28px", width: "100%" }}
           >Back to lobby</button>
         </div>
       </div>
@@ -619,7 +621,7 @@ export default function Play({ params }) {
     return (
       <div style={{ minHeight: "100dvh", background: BG, color: "white" }}>
         {/* Timer bar */}
-        <div style={{ height: 6, background: "rgba(255,255,255,0.15)" }}>
+        <div style={{ height: 6, background: WARM_LIGHT }}>
           <div style={{ height: "100%", width: `${pct}%`, background: urgent ? "#F97316" : ACCENT, transition: "width 0.5s linear" }} />
         </div>
 
@@ -701,7 +703,7 @@ export default function Play({ params }) {
                 {Array.from({ length: expectedAnswers }).map((_, i) => (
                   <div key={i} style={{
                     width: 36, height: 36, borderRadius: 8,
-                    background: i < fakeAnswerCount ? "rgba(255,255,255,0.25)" : "rgba(255,255,255,0.07)",
+                    background: i < fakeAnswerCount ? WARM_LIGHT : MID,
                     border: "2px solid rgba(255,255,255,0.15)",
                     transition: "background 0.3s",
                   }} />
@@ -729,7 +731,7 @@ export default function Play({ params }) {
                 maxLength={120}
                 rows={2}
                 style={{
-                  width: "100%", background: "rgba(255,255,255,0.15)", color: "white",
+                  width: "100%", background: WARM_LIGHT, color: "white",
                   fontSize: 18, fontWeight: 600, padding: "14px 16px", borderRadius: 8,
                   resize: "none", display: "block", marginBottom: 10, borderRadius: 0,
                 }}
@@ -782,7 +784,7 @@ export default function Play({ params }) {
                 {currentAnswers.map(a => (
                   <div key={a.id} style={{
                     padding: "16px 18px", fontSize: 17, fontWeight: 700,
-                    background: a.id === myVote?.answer_id ? "rgba(255,255,255,0.22)" : "rgba(255,255,255,0.08)",
+                    background: a.id === myVote?.answer_id ? WARM_LIGHT : MID,
                     border: a.id === myVote?.answer_id ? `2px solid ${ACCENT}` : "2px solid transparent",
                     opacity: a.id === myVote?.answer_id ? 1 : 0.5,
                   }}>
@@ -809,7 +811,7 @@ export default function Play({ params }) {
                       style={{
                         padding: "16px 18px", textAlign: "left",
                         fontSize: 17, fontWeight: 700, color: "white",
-                        background: isSelected ? "rgba(255,255,255,0.22)" : "rgba(255,255,255,0.08)",
+                        background: isSelected ? WARM_LIGHT : MID,
                         border: isSelected ? `2px solid ${ACCENT}` : "2px solid rgba(255,255,255,0.12)",
                         opacity: isOwn ? 0.35 : 1,
                       }}
