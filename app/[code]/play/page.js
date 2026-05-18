@@ -350,8 +350,13 @@ export default function Play({ params }) {
   // ── Derived state ─────────────────────────────────────────────────────────
 
   const n = players.length
+  const drawingPlayers = useMemo(() => players.filter(p => p.drawing_url), [players])
   const currentDrawingIndex = game?.current_drawing_index ?? 0
   const currentArtist = useMemo(() => players.find(p => p.seat === currentDrawingIndex) ?? null, [players, currentDrawingIndex])
+  const currentDrawingNumber = useMemo(() => {
+    const idx = drawingPlayers.findIndex(p => p.seat === currentDrawingIndex)
+    return idx >= 0 ? idx + 1 : null
+  }, [drawingPlayers, currentDrawingIndex])
   const amArtist = !!(me && currentArtist && me.id === currentArtist.id)
 
   const currentAnswers = useMemo(() =>
@@ -672,7 +677,7 @@ export default function Play({ params }) {
       <div style={{ minHeight: "100dvh", background: BG, color: "white" }}>
         <div style={{ padding: "28px 24px 20px", background: "#1C5250" }}>
           <div style={{ fontSize: 13, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.18em", opacity: 0.75, marginBottom: 4 }}>
-            DRAWING {currentDrawingIndex + 1} OF {n}
+            DRAWING {currentDrawingNumber} OF {drawingPlayers.length}
           </div>
           <div style={{ fontSize: 22, fontWeight: 900 }}>{currentArtist?.name}'s drawing</div>
         </div>
@@ -759,7 +764,7 @@ export default function Play({ params }) {
       <div style={{ minHeight: "100dvh", background: BG, color: "white", paddingBottom: 40 }}>
         <div style={{ padding: "28px 24px 20px", background: "#1C5250" }}>
           <div style={{ fontSize: 13, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.18em", opacity: 0.75, marginBottom: 4 }}>
-            DRAWING {currentDrawingIndex + 1} OF {n}
+            DRAWING {currentDrawingNumber} OF {drawingPlayers.length}
           </div>
           <div style={{ fontSize: 22, fontWeight: 900 }}>{currentArtist?.name}'s drawing</div>
         </div>
@@ -848,7 +853,7 @@ export default function Play({ params }) {
       <div style={{ minHeight: "100dvh", background: BG, color: "white", paddingBottom: 120 }}>
         <div style={{ padding: "28px 24px 20px", background: "#1C5250" }}>
           <div style={{ fontSize: 13, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.18em", opacity: 0.75, marginBottom: 4 }}>
-            DRAWING {currentDrawingIndex + 1} OF {n}
+            DRAWING {currentDrawingNumber} OF {drawingPlayers.length}
           </div>
           <div style={{ fontSize: 22, fontWeight: 900 }}>{currentArtist?.name}'s drawing</div>
         </div>
