@@ -30,9 +30,10 @@ function splitCode(code) {
 function loadProfile() {
   try {
     const local = JSON.parse(localStorage.getItem("jackgames:profile") || "null")
-    if (local?.firstName && local?.lastName) return local
     const match = document.cookie.match(/(?:^|;\s*)jackgames_profile=([^;]*)/)
-    if (match) return JSON.parse(decodeURIComponent(match[1]))
+    const cookie = match ? JSON.parse(decodeURIComponent(match[1])) : null
+    const merged = { ...(cookie ?? {}), ...(local ?? {}) }
+    if (merged.firstName && merged.lastName) return merged
   } catch {}
   return null
 }
