@@ -32,8 +32,8 @@ function loadProfile() {
     const local = JSON.parse(localStorage.getItem("jackgames:profile") || "null")
     const match = document.cookie.match(/(?:^|;\s*)jackgames_profile=([^;]*)/)
     const cookie = match ? JSON.parse(decodeURIComponent(match[1])) : null
-    const merged = { ...(cookie ?? {}) }
-    for (const [k, v] of Object.entries(local ?? {})) { if (v) merged[k] = v }
+    const merged = { ...(local ?? {}) }
+    for (const [k, v] of Object.entries(cookie ?? {})) { if (v) merged[k] = v }
     if (merged.firstName && merged.lastName) return merged
   } catch {}
   return null
