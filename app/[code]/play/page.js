@@ -182,10 +182,14 @@ function DrawingCanvas({ onExport, onFirstMark }) {
         if (e.touches.length >= 2) {
           e.preventDefault(); e.stopImmediatePropagation()
           canvas.isDrawingMode = false
-          // Discard any stroke the first finger started before pinch was detected
           try { canvas.freeDrawingBrush._points = []; canvas.renderAll() } catch (_) {}
           const t1 = e.touches[0], t2 = e.touches[1]
-          pinchRef.current = { dist: Math.hypot(t1.clientX-t2.clientX, t1.clientY-t2.clientY), startZoom: zoomRef.current }
+          pinchRef.current = {
+            dist: Math.hypot(t1.clientX-t2.clientX, t1.clientY-t2.clientY),
+            startZoom: zoomRef.current,
+            midX: (t1.clientX+t2.clientX)/2,
+            midY: (t1.clientY+t2.clientY)/2,
+          }
         }
       }
       function onTouchMove(e) {
@@ -194,9 +198,13 @@ function DrawingCanvas({ onExport, onFirstMark }) {
           const t1 = e.touches[0], t2 = e.touches[1]
           const newDist = Math.hypot(t1.clientX-t2.clientX, t1.clientY-t2.clientY)
           const newZoom = Math.min(8, Math.max(1, pinchRef.current.startZoom * (newDist / pinchRef.current.dist)))
+          const newMidX = (t1.clientX+t2.clientX)/2
+          const newMidY = (t1.clientY+t2.clientY)/2
           zoomRef.current = newZoom
           const rect = canvas.upperCanvasEl.getBoundingClientRect()
-          canvas.zoomToPoint({ x: (t1.clientX+t2.clientX)/2 - rect.left, y: (t1.clientY+t2.clientY)/2 - rect.top }, newZoom)
+          canvas.zoomToPoint({ x: newMidX - rect.left, y: newMidY - rect.top }, newZoom)
+          canvas.relativePan({ x: newMidX - pinchRef.current.midX, y: newMidY - pinchRef.current.midY })
+          pinchRef.current.midX = newMidX; pinchRef.current.midY = newMidY
           clampVP(); setZoomState(newZoom)
         }
       }
