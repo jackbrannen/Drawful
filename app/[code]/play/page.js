@@ -99,6 +99,7 @@ function DrawingCanvas({ onExport, onFirstMark }) {
   const zoomRef = useRef(1)
   const pinchRef = useRef(null)
   const panStartRef = useRef(null)
+  const bucketPendingRef = useRef(null)
 
   const [color, setColorState] = useState("#000000")
   const [brushSize, setBrushSize] = useState(8)
@@ -166,7 +167,11 @@ function DrawingCanvas({ onExport, onFirstMark }) {
       canvas.on("mouse:down", (opt) => {
         if (toolModeRef.current !== "bucket") return
         const p = canvas.getPointer(opt.e)
-        doBucketFillRef.current(Math.round(p.x), Math.round(p.y))
+        // Debounce: cancel if a second finger arrives within 150ms (it's a pinch, not a fill tap)
+        bucketPendingRef.current = setTimeout(() => {
+          bucketPendingRef.current = null
+          doBucketFillRef.current(Math.round(p.x), Math.round(p.y))
+        }, 150)
       })
       fabricRef.current = canvas
       onExportRef.current(() => canvas.toDataURL({ format: "jpeg", quality: 0.72 }))
@@ -182,6 +187,8 @@ function DrawingCanvas({ onExport, onFirstMark }) {
       function onTouchStart(e) {
         if (e.touches.length >= 2) {
           e.preventDefault(); e.stopImmediatePropagation()
+          // Cancel any pending bucket fill triggered by the first finger
+          if (bucketPendingRef.current) { clearTimeout(bucketPendingRef.current); bucketPendingRef.current = null }
           // Clear in-progress stroke BEFORE disabling drawing mode.
           // If we disable first, Fabric finalizes the partial first-finger stroke.
           try {
