@@ -294,10 +294,17 @@ export default function PokeSystem({
                   <div style={{ padding: "12px 0", minWidth: 40, flexShrink: 0, background: dark, fontSize: 16, fontWeight: 900, color: "white", display: "flex", alignItems: "center", justifyContent: "center" }}>
                     {i + 1}
                   </div>
-                  <div style={{ padding: "12px 16px", flex: 1, background: dark, filter: "brightness(1.4)", display: "flex", flexDirection: "column", gap: 2 }}>
-                    <div style={{ fontSize: 16, fontWeight: 700, color: "white" }}>{p.name}</div>
-                    {(p.firstName || p.lastName) && (
-                      <div style={{ fontSize: 13, color: "rgba(255,255,255,0.65)" }}>{[p.firstName, p.lastName].filter(Boolean).join(" ")}</div>
+                  <div style={{ padding: "12px 16px", flex: 1, background: dark, filter: "brightness(1.4)", display: "flex", alignItems: "center", gap: 8 }}>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontSize: 16, fontWeight: 700, color: "white" }}>{p.name}</div>
+                      {(p.firstName || p.lastName) && (
+                        <div style={{ fontSize: 13, color: "rgba(255,255,255,0.65)" }}>{[p.firstName, p.lastName].filter(Boolean).join(" ")}</div>
+                      )}
+                    </div>
+                    {p.teamColor && (
+                      <div style={{ background: p.teamColor, color: p.teamTextColor ?? "#fff", fontSize: 12, fontWeight: 800, padding: "3px 8px", flexShrink: 0 }}>
+                        {p.teamLabel ?? p.team}
+                      </div>
                     )}
                   </div>
                 </div>
