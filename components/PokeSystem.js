@@ -37,6 +37,7 @@ export default function PokeSystem({
   allPlayers = [],
   playerDetails = [],
   word = null,
+  roleContent = null,
   gamePhase,
   timerRunning = false,
   peekBarHeight = "0px",
@@ -160,6 +161,7 @@ export default function PokeSystem({
 
   const TILES = [
     word !== null ? { icon: "📖", label: "My Word", action: () => setPanel("myWord") } : null,
+    roleContent !== null ? { icon: "🃏", label: "My Role", action: () => setPanel("myRole") } : null,
     { icon: "👥", label: "Players",  action: () => setPanel("players") },
     rules ? { icon: "📋", label: "Rules", action: () => setPanel("rules") } : null,
     { icon: "😊", label: "Message", action: openMessage },
@@ -286,6 +288,16 @@ export default function PokeSystem({
             <div style={{ fontSize: 13, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.15em", opacity: 0.65, color: "white" }}>Your word</div>
             <div style={{ fontSize: 44, fontWeight: 900, letterSpacing: "-1px", color: "white", textAlign: "center" }}>{word}</div>
             <button onClick={() => setPanel(null)} style={{ background: dark, color: "rgba(255,255,255,0.8)", fontSize: 15, fontWeight: 800, padding: "14px", width: "100%" }}>Done</button>
+          </div>
+        </div>
+      )}
+
+      {/* ── My Role modal ── */}
+      {panel === "myRole" && roleContent && (
+        <div onClick={() => setPanel(null)} style={{ position: "fixed", inset: 0, background: "rgba(15,25,35,0.97)", zIndex: 95, overflowY: "auto", padding: 24 }}>
+          <div onClick={e => e.stopPropagation()}>
+            {roleContent}
+            <button onClick={() => setPanel(null)} style={{ background: mid, color: "rgba(255,255,255,0.8)", fontSize: 15, fontWeight: 800, padding: "14px", width: "100%", display: "block", marginTop: 16 }}>Done</button>
           </div>
         </div>
       )}
