@@ -275,7 +275,7 @@ export default function Play({ params }) {
 
   async function loadState() {
     const { data: gameData } = await supabase
-      .from("drawful_games").select("*").eq("code", code).single()
+      .from("drawful_games").select("phase,drawing_started_at,current_drawing_index,is_dummy,ready_player_ids").eq("code", code).single()
     if (!gameData) { router.replace(`/${code}`); return }
     if (gameData.phase === "lobby") { router.replace(`/${code}`); return }
     prevPhaseRef.current = gameData.phase
@@ -305,7 +305,7 @@ export default function Play({ params }) {
 
   useEffect(() => {
     loadState()
-    const poll = setInterval(loadState, 1500)
+    const poll = setInterval(loadState, 5000)
     const channel = supabase.channel(`drawful-play-${code}`)
       .on("postgres_changes", { event: "*", schema: "public", table: "drawful_games", filter: `code=eq.${code}` }, loadState)
       .on("postgres_changes", { event: "*", schema: "public", table: "drawful_answers", filter: `game_code=eq.${code}` }, loadState)
