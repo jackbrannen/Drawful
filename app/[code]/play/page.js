@@ -182,8 +182,13 @@ function DrawingCanvas({ onExport, onFirstMark }) {
       function onTouchStart(e) {
         if (e.touches.length >= 2) {
           e.preventDefault(); e.stopImmediatePropagation()
+          // Clear in-progress stroke BEFORE disabling drawing mode.
+          // If we disable first, Fabric finalizes the partial first-finger stroke.
+          try {
+            canvas.freeDrawingBrush._points = []
+            canvas.clearContext(canvas.contextTop)
+          } catch (_) {}
           canvas.isDrawingMode = false
-          try { canvas.freeDrawingBrush._points = []; canvas.renderAll() } catch (_) {}
           const t1 = e.touches[0], t2 = e.touches[1]
           pinchRef.current = {
             dist: Math.hypot(t1.clientX-t2.clientX, t1.clientY-t2.clientY),
@@ -212,7 +217,11 @@ function DrawingCanvas({ onExport, onFirstMark }) {
       function onTouchEnd(e) {
         if (e.touches.length < 2) pinchRef.current = null
         if (e.touches.length === 0) {
-          if (toolModeRef.current !== "bucket") canvas.isDrawingMode = true
+          // Defer re-enabling drawing mode so Fabric's own touchend handling
+          // completes first — avoids a state conflict that prevents drawing
+          requestAnimationFrame(() => {
+            if (toolModeRef.current !== "bucket") canvas.isDrawingMode = true
+          })
         }
       }
       canvas.upperCanvasEl.addEventListener("touchstart", onTouchStart, { passive: false })
