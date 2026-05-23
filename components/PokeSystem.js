@@ -38,6 +38,7 @@ export default function PokeSystem({
   playerDetails = [],
   word = null,
   gamePhase,
+  timerRunning = false,
   peekBarHeight = "0px",
   children,
 }) {
@@ -117,6 +118,10 @@ export default function PokeSystem({
       prevPhaseRef.current = gamePhase
     }
   }, [gamePhase])
+
+  useEffect(() => {
+    if (timerRunning) setPanel(null)
+  }, [timerRunning])
 
   function openMessage() { setMsgCustom(""); setPanel("message") }
   function openPoke()    { setPokeTarget(null); setPanel("poke") }
@@ -227,7 +232,8 @@ export default function PokeSystem({
         zIndex: 80,
       }}>
         <button
-          onClick={() => setPanel(p => p === "drawer" ? null : "drawer")}
+          onClick={() => !timerRunning && setPanel(p => p === "drawer" ? null : "drawer")}
+          disabled={timerRunning}
           style={{
             width: 56, flexShrink: 0,
             background: panel === "drawer" ? wl : "transparent",
@@ -235,6 +241,7 @@ export default function PokeSystem({
             display: "flex", alignItems: "center", justifyContent: "center",
             borderRight: "1px solid rgba(255,255,255,0.09)",
             transition: "background 0.15s",
+            opacity: timerRunning ? 0.25 : 1,
           }}
         >
           {panel === "drawer" ? "✕" : "☰"}
