@@ -207,7 +207,7 @@ export default function PokeSystem({
                 display: "flex", alignItems: "flex-start", gap: 8,
                 animation: exiting
                   ? "notifExit 0.45s ease-in forwards"
-                  : isForMe ? "notifPoke 0.9s ease-out forwards" : "notifEnter 0.3s ease-out forwards",
+                  : isForMe ? "notifPoke 0.45s ease-out forwards" : "notifEnter 0.3s ease-out forwards",
               }}>
               <div style={{ flex: 1 }}>
                 <div style={{ fontSize: 13, fontWeight: 700, color: "white", lineHeight: 1.3 }}>
