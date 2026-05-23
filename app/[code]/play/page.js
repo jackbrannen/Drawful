@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
 import { supabase } from "../../../lib/supabase"
+import { useSubmitNudge } from "../../../lib/useSubmitNudge"
 
 const BG = "#307977"
 const ACCENT = "#F5E8D8"
@@ -51,7 +52,7 @@ function floodFillImageData(imageData, startX, startY, fillHex) {
   const si = (startY*w+startX)*4
   const tr=d[si],tg=d[si+1],tb=d[si+2]
   if (tr===fr && tg===fg && tb===fb) return
-  const stack=[startY*w+startX], visited=new Uint8Array(w*h), tol=40
+  const stack=[startY*w+startX], visited=new Uint8Array(w*h), tol=80
   while (stack.length) {
     const p=stack.pop()
     if (p<0||p>=w*h||visited[p]) continue
@@ -61,6 +62,22 @@ function floodFillImageData(imageData, startX, startY, fillHex) {
     const x=p%w, y=Math.floor(p/w)
     if (x>0) stack.push(p-1); if (x<w-1) stack.push(p+1)
     if (y>0) stack.push(p-w); if (y<h-1) stack.push(p+w)
+  }
+  // Dilation pass: cover anti-aliased hairline pixels adjacent to filled area
+  for (let y=0; y<h; y++) {
+    for (let x=0; x<w; x++) {
+      if (!visited[y*w+x]) continue
+      for (let dy=-1; dy<=1; dy++) { for (let dx=-1; dx<=1; dx++) {
+        if (!dx&&!dy) continue
+        const nx=x+dx, ny=y+dy
+        if (nx<0||ny<0||nx>=w||ny>=h) continue
+        const ni=ny*w+nx; if (visited[ni]) continue
+        const ii=ni*4
+        if (Math.abs(d[ii]-tr)<=50&&Math.abs(d[ii+1]-tg)<=50&&Math.abs(d[ii+2]-tb)<=50) {
+          d[ii]=fr; d[ii+1]=fg; d[ii+2]=fb; d[ii+3]=255; visited[ni]=1
+        }
+      }}
+    }
   }
 }
 
@@ -78,10 +95,15 @@ function DrawingCanvas({ onExport, onFirstMark }) {
   const onFirstMarkRef = useRef(onFirstMark)
   onFirstMarkRef.current = onFirstMark
   const firstMarkFiredRef = useRef(false)
+  const touchCleanupRef = useRef(null)
+  const zoomRef = useRef(1)
+  const pinchRef = useRef(null)
+  const panStartRef = useRef(null)
 
   const [color, setColorState] = useState("#000000")
   const [brushSize, setBrushSize] = useState(8)
   const [toolMode, setToolModeState] = useState("pen")
+  const [zoomState, setZoomState] = useState(1)
   const colorRef = useRef("#000000")
   colorRef.current = color
   const toolModeRef = useRef("pen")
@@ -96,7 +118,11 @@ function DrawingCanvas({ onExport, onFirstMark }) {
   const doBucketFill = useCallback(async (x, y) => {
     const cv = fabricRef.current, fabricLib = fabricLibRef.current
     if (!cv || !fabricLib) return
+    // Reset viewport to 1:1 so toDataURL pixels match canvas coordinates
+    const savedVT = [...cv.viewportTransform]
+    cv.setViewportTransform([1, 0, 0, 1, 0, 0])
     const dataUrl = cv.toDataURL({ format: "png" })
+    cv.setViewportTransform(savedVT)
     await new Promise(resolve => {
       const img = new Image()
       img.onload = () => {
@@ -123,13 +149,13 @@ function DrawingCanvas({ onExport, onFirstMark }) {
   doBucketFillRef.current = doBucketFill
 
   useEffect(() => {
-    let canvas, cancelled = false
+    let cancelled = false
     ;(async () => {
       const { fabric } = await import("fabric")
       if (cancelled || !canvasRef.current || !containerRef.current) return
       fabricLibRef.current = fabric
       const w = containerRef.current.clientWidth
-      canvas = new fabric.Canvas(canvasRef.current, { isDrawingMode: true, width: w, height: w, backgroundColor: "#ffffff" })
+      const canvas = new fabric.Canvas(canvasRef.current, { isDrawingMode: true, width: w, height: w, backgroundColor: "#ffffff" })
       canvas.freeDrawingBrush.color = "#000000"
       canvas.freeDrawingBrush.width = 8
       canvas.on("path:created", () => {
@@ -143,8 +169,61 @@ function DrawingCanvas({ onExport, onFirstMark }) {
       })
       fabricRef.current = canvas
       onExportRef.current(() => canvas.toDataURL({ format: "jpeg", quality: 0.72 }))
+
+      // ── Pinch-to-zoom ─────────────────────────────────────────────────────
+      function clampVP() {
+        const vt = canvas.viewportTransform, z = canvas.getZoom()
+        const W = canvas.width, H = canvas.height
+        vt[4] = Math.min(0, Math.max(W * (1 - z), vt[4]))
+        vt[5] = Math.min(0, Math.max(H * (1 - z), vt[5]))
+        canvas.setViewportTransform(vt)
+      }
+      function onTouchStart(e) {
+        if (e.touches.length >= 2) {
+          e.preventDefault(); e.stopImmediatePropagation()
+          canvas.isDrawingMode = false
+          const t1 = e.touches[0], t2 = e.touches[1]
+          pinchRef.current = { dist: Math.hypot(t1.clientX-t2.clientX, t1.clientY-t2.clientY), startZoom: zoomRef.current }
+        } else if (e.touches.length === 1 && zoomRef.current > 1.05) {
+          e.preventDefault(); e.stopImmediatePropagation()
+          canvas.isDrawingMode = false
+          panStartRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY }
+        }
+      }
+      function onTouchMove(e) {
+        if (e.touches.length >= 2 && pinchRef.current) {
+          e.preventDefault(); e.stopImmediatePropagation()
+          const t1 = e.touches[0], t2 = e.touches[1]
+          const newDist = Math.hypot(t1.clientX-t2.clientX, t1.clientY-t2.clientY)
+          const newZoom = Math.min(8, Math.max(1, pinchRef.current.startZoom * (newDist / pinchRef.current.dist)))
+          zoomRef.current = newZoom
+          const rect = canvas.upperCanvasEl.getBoundingClientRect()
+          canvas.zoomToPoint({ x: (t1.clientX+t2.clientX)/2 - rect.left, y: (t1.clientY+t2.clientY)/2 - rect.top }, newZoom)
+          clampVP(); setZoomState(newZoom)
+        } else if (e.touches.length === 1 && panStartRef.current) {
+          e.preventDefault(); e.stopImmediatePropagation()
+          const t = e.touches[0]
+          canvas.relativePan({ x: t.clientX - panStartRef.current.x, y: t.clientY - panStartRef.current.y })
+          panStartRef.current = { x: t.clientX, y: t.clientY }; clampVP()
+        }
+      }
+      function onTouchEnd(e) {
+        if (e.touches.length < 2) pinchRef.current = null
+        if (e.touches.length === 0) {
+          panStartRef.current = null
+          if (toolModeRef.current !== "bucket") canvas.isDrawingMode = true
+        }
+      }
+      canvas.upperCanvasEl.addEventListener("touchstart", onTouchStart, { passive: false })
+      canvas.upperCanvasEl.addEventListener("touchmove", onTouchMove, { passive: false })
+      canvas.upperCanvasEl.addEventListener("touchend", onTouchEnd)
+      touchCleanupRef.current = () => {
+        canvas.upperCanvasEl.removeEventListener("touchstart", onTouchStart)
+        canvas.upperCanvasEl.removeEventListener("touchmove", onTouchMove)
+        canvas.upperCanvasEl.removeEventListener("touchend", onTouchEnd)
+      }
     })()
-    return () => { cancelled = true; fabricRef.current?.dispose(); fabricRef.current = null }
+    return () => { cancelled = true; touchCleanupRef.current?.(); fabricRef.current?.dispose(); fabricRef.current = null }
   }, [])
 
   function applyBrush(c, sz, eraser) {
@@ -161,10 +240,11 @@ function DrawingCanvas({ onExport, onFirstMark }) {
     applyBrush(c, brushSizeRef.current, false)
   }
   function handleSetTool(mode) {
-    setToolModeState(mode)
+    const next = mode === toolMode ? "pen" : mode
+    setToolModeState(next)
     const cv = fabricRef.current; if (!cv) return
-    cv.isDrawingMode = mode !== "bucket"
-    if (mode !== "bucket") applyBrush(colorRef.current, brushSizeRef.current, mode === "eraser")
+    cv.isDrawingMode = next !== "bucket"
+    if (next !== "bucket") applyBrush(colorRef.current, brushSizeRef.current, next === "eraser")
   }
   function handleSizeChange(sz) {
     setBrushSize(sz); applyBrush(colorRef.current, sz, toolMode === "eraser")
@@ -187,34 +267,48 @@ function DrawingCanvas({ onExport, onFirstMark }) {
     if (cv.getObjects().length > 0) { historyRef.current.push(JSON.stringify(cv.toJSON())); redoStackRef.current = [] }
     cv.clear(); cv.backgroundColor = "#ffffff"; cv.renderAll()
   }
+  function handleResetZoom() {
+    const cv = fabricRef.current; if (!cv) return
+    cv.setViewportTransform([1, 0, 0, 1, 0, 0]); cv.setZoom(1)
+    zoomRef.current = 1; setZoomState(1)
+    if (toolModeRef.current !== "bucket") cv.isDrawingMode = true
+  }
 
   const BRUSH_SIZES = [2, 4, 8, 14, 22, 34, 52]
+  const iconStroke = { fill: "none", stroke: "currentColor", strokeWidth: 2, strokeLinecap: "round", strokeLinejoin: "round" }
 
   return (
     <div ref={containerRef}>
-      <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "10px 0 8px" }}>
+      {/* Tool + utility row */}
+      <div style={{ display: "flex", alignItems: "center", gap: 4, padding: "10px 16px 8px", flexWrap: "nowrap" }}>
         {[
-          { mode: "pen", icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg> },
-          { mode: "eraser", icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m7 21-4.3-4.3c-1-1-1-2.5 0-3.4l9.6-9.6c1-1 2.5-1 3.4 0l5.6 5.6c1 1 1 2.5 0 3.4L13 21"/><path d="M22 21H7"/><path d="m5 11 9 9"/></svg> },
-          { mode: "bucket", icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m19 11-8-8-8.5 8.5a5.5 5.5 0 0 0 7.78 7.78Z"/><path d="m5 3 5 5"/><path d="M22 22c0-1.2-.2-2-.8-3-1.4 0-2.2 1.8-2.2 3"/></svg> },
-        ].map(({ mode, icon }) => (
-          <button key={mode} onClick={() => handleSetTool(mode === "eraser" && toolMode === "eraser" ? "pen" : mode === "bucket" && toolMode === "bucket" ? "pen" : mode)}
-            style={{ background: toolMode === mode ? ACCENT : WARM_LIGHT, color: toolMode === mode ? "#000" : "white", width: 44, height: 44, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+          { mode: "pen", label: "Draw", icon: <svg width="18" height="18" viewBox="0 0 24 24" {...iconStroke}><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg> },
+          { mode: "eraser", label: "Erase", icon: <svg width="18" height="18" viewBox="0 0 24 24" {...iconStroke}><path d="M20 20H7L3 16l13-13 7 7-3 3"/><path d="M6 17l4-4"/></svg> },
+          { mode: "bucket", label: "Fill", icon: <svg width="18" height="18" viewBox="0 0 24 24" {...iconStroke}><path d="M19 11L11 3 2.5 11.5a5.5 5.5 0 0 0 7.78 7.78L19 11z"/><path d="M5 3l5 5"/><path d="M22 22c0-1.2-.2-2-.8-3-1.4 0-2.2 1.8-2.2 3"/></svg> },
+        ].map(({ mode, label, icon }) => (
+          <button key={mode} onClick={() => handleSetTool(mode)}
+            style={{ background: toolMode === mode ? ACCENT : WARM_LIGHT, color: toolMode === mode ? "#000" : "white", padding: "8px 10px", display: "flex", alignItems: "center", gap: 5, flexShrink: 0, height: 40 }}>
             {icon}
+            <span style={{ fontSize: 13, fontWeight: 800 }}>{label}</span>
           </button>
         ))}
-        <button onClick={handleUndo} style={{ background: WARM_LIGHT, color: "white", width: 44, height: 44, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"/></svg>
+        <div style={{ flex: 1 }} />
+        <button onClick={handleUndo} style={{ background: WARM_LIGHT, color: "white", width: 40, height: 40, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+          <svg width="18" height="18" viewBox="0 0 24 24" {...iconStroke}><path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"/></svg>
         </button>
-        <button onClick={handleRedo} style={{ background: WARM_LIGHT, color: "white", width: 44, height: 44, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 7v6h-6"/><path d="M3 17a9 9 0 0 1 9-9 9 9 0 0 1 6 2.3L21 13"/></svg>
+        <button onClick={handleRedo} style={{ background: WARM_LIGHT, color: "white", width: 40, height: 40, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+          <svg width="18" height="18" viewBox="0 0 24 24" {...iconStroke}><path d="M21 7v6h-6"/><path d="M3 17a9 9 0 0 1 9-9 9 9 0 0 1 6 2.3L21 13"/></svg>
         </button>
-        <button onClick={handleClear} style={{ background: WARM_LIGHT, color: "rgba(255,255,255,0.6)", width: 44, height: 44, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+        <button onClick={handleClear} style={{ background: WARM_LIGHT, color: "rgba(255,255,255,0.6)", width: 40, height: 40, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+          <svg width="17" height="17" viewBox="0 0 24 24" {...iconStroke}><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
         </button>
+        {zoomState > 1.05 && (
+          <button onClick={handleResetZoom} style={{ background: ACCENT, color: "#000", padding: "8px 10px", fontSize: 12, fontWeight: 900, flexShrink: 0, height: 40 }}>1:1</button>
+        )}
       </div>
 
-      <div style={{ display: "flex", alignItems: "center", gap: 4, paddingBottom: 10 }}>
+      {/* Brush sizes */}
+      <div style={{ display: "flex", alignItems: "center", gap: 4, padding: "0 16px 8px" }}>
         {BRUSH_SIZES.map((sz, i) => {
           const d = 5 + i * 4.5, active = brushSize === sz && toolMode !== "bucket"
           return (
@@ -226,7 +320,8 @@ function DrawingCanvas({ onExport, onFirstMark }) {
         })}
       </div>
 
-      <div style={{ display: "flex", flexWrap: "wrap", gap: 5, marginBottom: 10 }}>
+      {/* Color palette */}
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 5, padding: "0 16px 10px" }}>
         {PALETTE.map(c => (
           <button key={c} onClick={() => handleColorClick(c)}
             style={{ width: 28, height: 28, background: c, flexShrink: 0,
@@ -234,7 +329,8 @@ function DrawingCanvas({ onExport, onFirstMark }) {
         ))}
       </div>
 
-      <div style={{ overflow: "hidden", cursor: toolMode === "bucket" ? "crosshair" : "default" }}>
+      {/* Canvas — full-width, square */}
+      <div style={{ cursor: toolMode === "bucket" ? "crosshair" : "default" }}>
         <canvas ref={canvasRef} style={{ display: "block", touchAction: "none" }} />
       </div>
     </div>
@@ -371,6 +467,7 @@ export default function Play({ params }) {
     answers.find(a => a.drawing_player_id === currentArtist?.id && a.author_id === myPlayerId),
     [answers, currentArtist, myPlayerId]
   )
+  const nudgeAnswer = useSubmitNudge(answerText, !!myAnswer)
 
   const myVote = useMemo(() =>
     votes.find(v => v.drawing_player_id === currentArtist?.id && v.voter_id === myPlayerId),
@@ -651,11 +748,11 @@ export default function Play({ params }) {
           <div style={{ fontSize: 13, opacity: 0.65, fontWeight: 600 }}>Draw this. No letters or numbers!</div>
         </div>
 
+        <DrawingCanvas
+          onExport={fn => { getExportRef.current = fn }}
+          onFirstMark={() => setDrawingDirty(true)}
+        />
         <div style={{ padding: "0 24px" }}>
-          <DrawingCanvas
-            onExport={fn => { getExportRef.current = fn }}
-            onFirstMark={() => setDrawingDirty(true)}
-          />
           <button
             onClick={() => submitDrawing(false)}
             disabled={submittingDrawing}
@@ -746,7 +843,7 @@ export default function Play({ params }) {
               <button
                 onClick={submitAnswer}
                 disabled={!answerText.trim() || submittingAnswer}
-                style={{ background: ACCENT, color: "#000", fontSize: 20, fontWeight: 900, padding: "18px", width: "100%", display: "block" }}
+                style={{ background: ACCENT, color: "#000", fontSize: 20, fontWeight: 900, padding: "18px", width: "100%", display: "block", animation: nudgeAnswer ? "nudgePulse 1.5s ease-in-out infinite" : "none" }}
               >
                 {submittingAnswer ? "Submitting…" : "Submit"}
               </button>
