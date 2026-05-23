@@ -73,7 +73,7 @@ function floodFillImageData(imageData, startX, startY, fillHex) {
         if (nx<0||ny<0||nx>=w||ny>=h) continue
         const ni=ny*w+nx; if (visited[ni]) continue
         const ii=ni*4
-        if (Math.abs(d[ii]-tr)<=50&&Math.abs(d[ii+1]-tg)<=50&&Math.abs(d[ii+2]-tb)<=50) {
+        if (Math.abs(d[ii]-tr)<=150&&Math.abs(d[ii+1]-tg)<=150&&Math.abs(d[ii+2]-tb)<=150) {
           d[ii]=fr; d[ii+1]=fg; d[ii+2]=fb; d[ii+3]=255; visited[ni]=1
         }
       }}
@@ -182,12 +182,10 @@ function DrawingCanvas({ onExport, onFirstMark }) {
         if (e.touches.length >= 2) {
           e.preventDefault(); e.stopImmediatePropagation()
           canvas.isDrawingMode = false
+          // Discard any stroke the first finger started before pinch was detected
+          try { canvas.freeDrawingBrush._points = []; canvas.renderAll() } catch (_) {}
           const t1 = e.touches[0], t2 = e.touches[1]
           pinchRef.current = { dist: Math.hypot(t1.clientX-t2.clientX, t1.clientY-t2.clientY), startZoom: zoomRef.current }
-        } else if (e.touches.length === 1 && zoomRef.current > 1.05) {
-          e.preventDefault(); e.stopImmediatePropagation()
-          canvas.isDrawingMode = false
-          panStartRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY }
         }
       }
       function onTouchMove(e) {
@@ -200,17 +198,11 @@ function DrawingCanvas({ onExport, onFirstMark }) {
           const rect = canvas.upperCanvasEl.getBoundingClientRect()
           canvas.zoomToPoint({ x: (t1.clientX+t2.clientX)/2 - rect.left, y: (t1.clientY+t2.clientY)/2 - rect.top }, newZoom)
           clampVP(); setZoomState(newZoom)
-        } else if (e.touches.length === 1 && panStartRef.current) {
-          e.preventDefault(); e.stopImmediatePropagation()
-          const t = e.touches[0]
-          canvas.relativePan({ x: t.clientX - panStartRef.current.x, y: t.clientY - panStartRef.current.y })
-          panStartRef.current = { x: t.clientX, y: t.clientY }; clampVP()
         }
       }
       function onTouchEnd(e) {
         if (e.touches.length < 2) pinchRef.current = null
         if (e.touches.length === 0) {
-          panStartRef.current = null
           if (toolModeRef.current !== "bucket") canvas.isDrawingMode = true
         }
       }
