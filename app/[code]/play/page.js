@@ -155,7 +155,8 @@ function DrawingCanvas({ onExport, onFirstMark }) {
       if (cancelled || !canvasRef.current || !containerRef.current) return
       fabricLibRef.current = fabric
       const w = containerRef.current.clientWidth
-      const canvas = new fabric.Canvas(canvasRef.current, { isDrawingMode: true, width: w, height: w, backgroundColor: "#ffffff" })
+      const h = containerRef.current.clientHeight || w
+      const canvas = new fabric.Canvas(canvasRef.current, { isDrawingMode: true, width: w, height: h, backgroundColor: "#ffffff" })
       canvas.freeDrawingBrush.color = "#000000"
       canvas.freeDrawingBrush.width = 8
       canvas.on("path:created", () => {
@@ -278,9 +279,9 @@ function DrawingCanvas({ onExport, onFirstMark }) {
   const iconStroke = { fill: "none", stroke: "currentColor", strokeWidth: 2, strokeLinecap: "round", strokeLinejoin: "round" }
 
   return (
-    <div ref={containerRef}>
-      {/* Canvas — full-width, square, with floating zoom-out button */}
-      <div style={{ position: "relative", cursor: toolMode === "bucket" ? "crosshair" : "default" }}>
+    <div style={{ height: "100%", display: "flex", flexDirection: "column" }}>
+      {/* Canvas — fills available height, with floating zoom-out button */}
+      <div ref={containerRef} style={{ flex: 1, minHeight: 0, position: "relative", cursor: toolMode === "bucket" ? "crosshair" : "default" }}>
         <canvas ref={canvasRef} style={{ display: "block", touchAction: "none" }} />
         {zoomState > 1.05 && (
           <button onClick={handleResetZoom} style={{
@@ -731,40 +732,35 @@ export default function Play({ params }) {
     }
 
     return (
-      <div style={{ minHeight: "100dvh", background: BG, color: "white" }}>
-        {/* Timer bar */}
-        <div style={{ height: 6, background: WARM_LIGHT }}>
-          <div style={{ height: "100%", width: `${pct}%`, background: urgent ? "#F97316" : ACCENT, transition: "width 0.5s linear" }} />
+      <div style={{ height: "100dvh", background: BG, color: "white", display: "flex", flexDirection: "column", overflow: "hidden" }}>
+        {/* Compact header */}
+        <div style={{ flexShrink: 0, padding: "12px 24px 10px" }}>
+          <div style={{ height: 4, background: WARM_LIGHT, marginBottom: 10 }}>
+            <div style={{ height: "100%", width: `${pct}%`, background: urgent ? "#F97316" : ACCENT, transition: "width 0.5s linear" }} />
+          </div>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12 }}>
+            <div>
+              <div style={{ fontSize: 20, fontWeight: 900, lineHeight: 1.2 }}>{me.prompt}</div>
+              <div style={{ fontSize: 13, opacity: 0.65, fontWeight: 600, marginTop: 3 }}>No letters or numbers</div>
+            </div>
+            <div style={{ fontSize: urgent ? 20 : 16, fontWeight: 900, color: urgent ? "#F97316" : "white", flexShrink: 0 }}>{secondsLeft}s</div>
+          </div>
         </div>
 
-        <div style={{ padding: "16px 24px 8px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <div style={{ fontSize: 17, fontWeight: 800, color: "rgba(255,255,255,0.85)" }}>
-            Drawing Phase
-          </div>
-          <div style={{ fontSize: urgent ? 22 : 18, fontWeight: 900, color: urgent ? "#F97316" : "white" }}>
-            {secondsLeft}s
-          </div>
+        {/* Canvas — fills remaining space */}
+        <div style={{ flex: 1, minHeight: 0 }}>
+          <DrawingCanvas
+            onExport={fn => { getExportRef.current = fn }}
+            onFirstMark={() => setDrawingDirty(true)}
+          />
         </div>
 
-        <div style={{ padding: "0 24px 12px" }}>
-          <div style={{ fontSize: 17, fontWeight: 800, color: "rgba(255,255,255,0.85)", marginBottom: 6 }}>
-            Your Prompt
-          </div>
-          <div style={{ fontSize: 22, fontWeight: 900, lineHeight: 1.2, marginBottom: 4 }}>
-            {me.prompt}
-          </div>
-          <div style={{ fontSize: 13, opacity: 0.65, fontWeight: 600 }}>Draw this. No letters or numbers!</div>
-        </div>
-
-        <DrawingCanvas
-          onExport={fn => { getExportRef.current = fn }}
-          onFirstMark={() => setDrawingDirty(true)}
-        />
-        <div style={{ padding: "0 24px" }}>
+        {/* Submit */}
+        <div style={{ flexShrink: 0, padding: "12px 24px", paddingBottom: "max(12px, env(safe-area-inset-bottom))" }}>
           <button
             onClick={() => submitDrawing(false)}
             disabled={submittingDrawing}
-            style={{ background: ACCENT, color: "#000", fontSize: 20, fontWeight: 900, padding: "18px", width: "100%", display: "block", marginTop: 16 }}
+            style={{ background: ACCENT, color: "#000", fontSize: 20, fontWeight: 900, padding: "18px", width: "100%", display: "block" }}
           >
             {submittingDrawing ? "Submitting…" : "Done Drawing"}
           </button>
