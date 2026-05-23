@@ -181,26 +181,38 @@ export default function PokeSystem({
       <div style={{
         position: "fixed", top: 12, right: 12, left: 12, zIndex: 200,
         display: "flex", flexDirection: "column", gap: 6, alignItems: "flex-end",
-        pointerEvents: "none",
       }}>
         {notifications.map(({ id, poke, exiting }) => {
           const isForMe = poke.to_player && poke.to_player === currentPlayer
+          function dismiss() {
+            setNotifications(prev => prev.map(n => n.id === id ? { ...n, exiting: true } : n))
+            setTimeout(() => setNotifications(prev => prev.filter(n => n.id !== id)), 450)
+          }
+          let touchStartX = null
           return (
-            <div key={id} style={{
-              background: notifBg, padding: "8px 12px", maxWidth: 260,
-              boxShadow: "0 2px 16px rgba(0,0,0,0.6)",
-              animation: exiting
-                ? "notifExit 0.45s ease-in forwards"
-                : isForMe ? "notifPoke 0.9s ease-out forwards" : "notifEnter 0.3s ease-out forwards",
-            }}>
-              <div style={{ fontSize: 13, fontWeight: 700, color: "white", lineHeight: 1.3 }}>
-                {poke.to_player
-                  ? (isForMe ? `👉 ${poke.from_player} poked you` : `👉 ${poke.to_player}`)
-                  : poke.message}
+            <div key={id}
+              onTouchStart={e => { touchStartX = e.touches[0].clientX }}
+              onTouchEnd={e => { if (touchStartX !== null && e.changedTouches[0].clientX - touchStartX > 40) dismiss() }}
+              onClick={dismiss}
+              style={{
+                background: notifBg, padding: "8px 12px", maxWidth: 260,
+                boxShadow: "0 2px 16px rgba(0,0,0,0.6)", cursor: "pointer",
+                display: "flex", alignItems: "flex-start", gap: 8,
+                animation: exiting
+                  ? "notifExit 0.45s ease-in forwards"
+                  : isForMe ? "notifPoke 0.9s ease-out forwards" : "notifEnter 0.3s ease-out forwards",
+              }}>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 13, fontWeight: 700, color: "white", lineHeight: 1.3 }}>
+                  {poke.to_player
+                    ? (isForMe ? `👉 ${poke.from_player} poked you` : `👉 ${poke.to_player}`)
+                    : poke.message}
+                </div>
+                {!isForMe && (
+                  <div style={{ fontSize: 11, color: "rgba(255,255,255,0.65)", marginTop: 2 }}>{poke.from_player}</div>
+                )}
               </div>
-              {!isForMe && (
-                <div style={{ fontSize: 11, color: "rgba(255,255,255,0.65)", marginTop: 2 }}>{poke.from_player}</div>
-              )}
+              <div style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", lineHeight: 1, flexShrink: 0, marginTop: 1 }}>✕</div>
             </div>
           )
         })}
