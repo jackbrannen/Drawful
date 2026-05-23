@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
 import { supabase } from "../../../lib/supabase"
+import PokeSystem, { FOOTER_H } from "../../../components/PokeSystem"
 import { useSubmitNudge } from "../../../lib/useSubmitNudge"
 
 const BG = "#307977"
@@ -364,6 +365,9 @@ function DrawingCanvas({ onExport, onFirstMark }) {
 
 // ─── Main play page ───────────────────────────────────────────────────────────
 
+
+const POKE_COLORS = { dark: "#1C5250", mid: "#245E5C", wl: "#3A9180", yellow: "#F5E8D8", notifBg: "#0F302F" }
+const BOTTOM_PAD = `calc(${FOOTER_H + 8}px + env(safe-area-inset-bottom))`
 export default function Play({ params }) {
   const router = useRouter()
   const code = useMemo(() => params.code.toUpperCase(), [params.code])
@@ -393,6 +397,20 @@ export default function Play({ params }) {
   const soundTriggerRef = useRef(null)
 
   const me = players.find(p => p.id === myPlayerId)
+
+  // ── PokeSystem (always mounted for notifications) ──────────────────────────
+  const pokeSystemNode = me ? (
+    <PokeSystem
+      colors={POKE_COLORS}
+      roomCode={code}
+      currentPlayer={me.name}
+      allPlayers={players.map(p => p.name)}
+      playerDetails={players.map(p => ({ name: p.name, firstName: p.first_name, lastName: p.last_name }))}
+      gamePhase={game?.phase}
+      onResetToLobby={async () => { await supabase.rpc("drawful_reset_game", { p_code: code }) }}
+    />
+  ) : null
+
 
   async function loadState() {
     const { data: gameData } = await supabase
@@ -672,9 +690,12 @@ export default function Play({ params }) {
 
   if (!game || !me) {
     return (
+      <>
       <div style={{ minHeight: "100dvh", background: BG, display: "flex", alignItems: "center", justifyContent: "center" }}>
         <p style={{ color: "rgba(255,255,255,0.4)", fontSize: 18, fontWeight: 700 }}>Loading…</p>
       </div>
+        {pokeSystemNode}
+      </>
     )
   }
 
@@ -686,6 +707,7 @@ export default function Play({ params }) {
     const winners = sorted.filter(p => p.score === topScore)
 
     return (
+      <>
       <div style={{ minHeight: "100dvh", background: BG, color: "white" }}>
         <div style={{ padding: "48px 24px 32px", textAlign: "center" }}>
           <h1 style={{ fontSize: 36, fontWeight: 900, letterSpacing: "-1px", marginBottom: 8 }}>Game over!</h1>
@@ -725,6 +747,8 @@ export default function Play({ params }) {
           >Back to lobby</button>
         </div>
       </div>
+        {pokeSystemNode}
+      </>
     )
   }
 
@@ -748,6 +772,7 @@ export default function Play({ params }) {
     }
 
     return (
+      <>
       <div style={{ height: "100dvh", background: BG, color: "white", display: "flex", flexDirection: "column", overflow: "hidden" }}>
         {/* Compact header */}
         <div style={{ flexShrink: 0, padding: "12px 24px 10px" }}>
@@ -782,6 +807,8 @@ export default function Play({ params }) {
           </button>
         </div>
       </div>
+        {pokeSystemNode}
+      </>
     )
   }
 
@@ -793,6 +820,7 @@ export default function Play({ params }) {
     const isWaiting = amArtist ? false : !!myAnswer
 
     return (
+      <>
       <div style={{ minHeight: "100dvh", background: BG, color: "white" }}>
         <div style={{ padding: "28px 24px 20px", background: "#1C5250" }}>
           <div style={{ fontSize: 13, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.18em", opacity: 0.75, marginBottom: 4 }}>
@@ -871,6 +899,8 @@ export default function Play({ params }) {
           )}
         </div>
       </div>
+        {pokeSystemNode}
+      </>
     )
   }
 
@@ -880,6 +910,7 @@ export default function Play({ params }) {
     const hasVoted = !!myVote
 
     return (
+      <>
       <div style={{ minHeight: "100dvh", background: BG, color: "white", paddingBottom: 40 }}>
         <div style={{ padding: "28px 24px 20px", background: "#1C5250" }}>
           <div style={{ fontSize: 13, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.18em", opacity: 0.75, marginBottom: 4 }}>
@@ -956,6 +987,8 @@ export default function Play({ params }) {
           )}
         </div>
       </div>
+        {pokeSystemNode}
+      </>
     )
   }
 
@@ -969,6 +1002,7 @@ export default function Play({ params }) {
     const readyCount = (game.ready_player_ids ?? []).length
 
     return (
+      <>
       <div style={{ minHeight: "100dvh", background: BG, color: "white", paddingBottom: 120 }}>
         <div style={{ padding: "28px 24px 20px", background: "#1C5250" }}>
           <div style={{ fontSize: 13, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.18em", opacity: 0.75, marginBottom: 4 }}>
@@ -1083,7 +1117,7 @@ export default function Play({ params }) {
         </div>
 
         {/* Fixed bottom: all players ready to advance */}
-        <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, padding: "16px 24px", paddingBottom: "calc(16px + env(safe-area-inset-bottom))", background: BG, borderTop: "1px solid rgba(255,255,255,0.15)" }}>
+        <div style={{ position: "fixed", bottom: FOOTER_H, left: 0, right: 0, padding: "16px 24px", paddingBottom: "calc(16px + env(safe-area-inset-bottom))", background: BG, borderTop: "1px solid rgba(255,255,255,0.15)" }}>
           {(isMeReady || markingReady) ? (
             <p style={{ fontSize: 14, fontWeight: 700, opacity: 0.75, textAlign: "center" }}>
               {readyCount} / {players.length} ready — waiting for others…
@@ -1098,6 +1132,8 @@ export default function Play({ params }) {
           )}
         </div>
       </div>
+        {pokeSystemNode}
+      </>
     )
   }
 
