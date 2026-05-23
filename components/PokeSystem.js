@@ -5,12 +5,6 @@ import { supabase } from "../lib/supabase"
 
 export const FOOTER_H = 56
 
-const QUICK_PICKS = [
-  "Hurry up! 👀",
-  "We're waiting... ⏳",
-  "Hello?? 👋",
-  "WAKE UP 🚨",
-]
 
 function playPing() {
   try {
@@ -57,7 +51,6 @@ export default function PokeSystem({
 
   const [notifications, setNotifications] = useState([])
   const [panel, setPanel]               = useState(null)
-  const [msgQuick, setMsgQuick]         = useState(null)
   const [msgCustom, setMsgCustom]       = useState("")
   const [msgSending, setMsgSending]     = useState(false)
   const [pokeTarget, setPokeTarget]     = useState(null)
@@ -125,12 +118,12 @@ export default function PokeSystem({
     }
   }, [gamePhase])
 
-  function openMessage() { setMsgQuick(null); setMsgCustom(""); setPanel("message") }
+  function openMessage() { setMsgCustom(""); setPanel("message") }
   function openPoke()    { setPokeTarget(null); setPanel("poke") }
 
   async function sendMessage() {
     if (msgSending) return
-    const msg = msgQuick || msgCustom.trim()
+    const msg = msgCustom.trim()
     if (!msg) return
     setMsgSending(true)
     await supabase.from("pokes").insert({ room_code: roomCode, from_player: currentPlayer, to_player: null, message: msg })
@@ -155,7 +148,7 @@ export default function PokeSystem({
   }
 
   const pokePlayers = allPlayers.filter(n => n !== currentPlayer)
-  const msgActive   = !!(msgQuick || msgCustom.trim())
+  const msgActive   = !!msgCustom.trim()
 
   const footerBottom = peekBarHeight
   const drawerBottom = `calc(${peekBarHeight} + ${FOOTER_H}px)`
@@ -308,20 +301,9 @@ export default function PokeSystem({
         <div onClick={() => setPanel(null)} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.78)", zIndex: 95, display: "flex", alignItems: "center", justifyContent: "center", padding: "24px 20px" }}>
           <div onClick={e => e.stopPropagation()} style={{ background: mid, width: "100%", maxWidth: 400, padding: "24px", display: "flex", flexDirection: "column", gap: 16 }}>
             <div style={{ fontSize: 18, fontWeight: 900, color: "white" }}>Message the room</div>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6 }}>
-              {QUICK_PICKS.map(q => {
-                const on = msgQuick === q
-                return (
-                  <button key={q} onClick={() => { setMsgQuick(on ? null : q); setMsgCustom("") }}
-                    style={{ background: on ? yellow : dark, color: on ? "#000" : "rgba(255,255,255,0.85)", fontSize: 13, fontWeight: 700, padding: "11px 10px", textAlign: "left", lineHeight: 1.3 }}>
-                    {q}
-                  </button>
-                )
-              })}
-            </div>
-            <input type="text" placeholder="Or type a message…" value={msgCustom}
-              onChange={e => { setMsgCustom(e.target.value); setMsgQuick(null) }}
-              maxLength={80}
+            <input type="text" placeholder="Type a message…" value={msgCustom}
+              onChange={e => setMsgCustom(e.target.value)}
+              maxLength={32}
               style={{ background: dark, color: "white", fontSize: 15, fontWeight: 600, padding: "12px 14px", width: "100%", display: "block", boxSizing: "border-box" }} />
             <div style={{ display: "flex", gap: 8 }}>
               <button onClick={() => setPanel(null)} style={{ flex: 1, background: dark, color: "rgba(255,255,255,0.8)", fontSize: 15, fontWeight: 800, padding: "14px" }}>Cancel</button>
