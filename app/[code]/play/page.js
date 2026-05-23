@@ -279,6 +279,22 @@ function DrawingCanvas({ onExport, onFirstMark }) {
 
   return (
     <div ref={containerRef}>
+      {/* Canvas — full-width, square, with floating zoom-out button */}
+      <div style={{ position: "relative", cursor: toolMode === "bucket" ? "crosshair" : "default" }}>
+        <canvas ref={canvasRef} style={{ display: "block", touchAction: "none" }} />
+        {zoomState > 1.05 && (
+          <button onClick={handleResetZoom} style={{
+            position: "absolute", bottom: 10, right: 10,
+            width: 44, height: 44, background: "rgba(0,0,0,0.55)",
+            color: "white", display: "flex", alignItems: "center", justifyContent: "center",
+          }}>
+            <svg width="22" height="22" viewBox="0 0 24 24" {...iconStroke}>
+              <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="8" y1="11" x2="14" y2="11"/>
+            </svg>
+          </button>
+        )}
+      </div>
+
       {/* Tool + utility row */}
       <div style={{ display: "flex", alignItems: "center", gap: 4, padding: "10px 16px 8px", flexWrap: "nowrap" }}>
         {[
@@ -302,9 +318,6 @@ function DrawingCanvas({ onExport, onFirstMark }) {
         <button onClick={handleClear} style={{ background: WARM_LIGHT, color: "rgba(255,255,255,0.6)", width: 40, height: 40, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
           <svg width="17" height="17" viewBox="0 0 24 24" {...iconStroke}><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
         </button>
-        {zoomState > 1.05 && (
-          <button onClick={handleResetZoom} style={{ background: ACCENT, color: "#000", padding: "8px 10px", fontSize: 12, fontWeight: 900, flexShrink: 0, height: 40 }}>1:1</button>
-        )}
       </div>
 
       {/* Brush sizes */}
@@ -327,11 +340,6 @@ function DrawingCanvas({ onExport, onFirstMark }) {
             style={{ width: 28, height: 28, background: c, flexShrink: 0,
               border: color === c && toolMode !== "eraser" ? "3px solid white" : c === "#FFFFFF" || c === "#DDDDDD" ? "1px solid rgba(255,255,255,0.25)" : "2px solid transparent" }} />
         ))}
-      </div>
-
-      {/* Canvas — full-width, square */}
-      <div style={{ cursor: toolMode === "bucket" ? "crosshair" : "default" }}>
-        <canvas ref={canvasRef} style={{ display: "block", touchAction: "none" }} />
       </div>
     </div>
   )
