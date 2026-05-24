@@ -399,7 +399,7 @@ export default function Play({ params }) {
   const me = players.find(p => p.id === myPlayerId)
 
   // ── PokeSystem (always mounted for notifications) ──────────────────────────
-  const pokeSystemNode = me ? (
+  const pokeSystemNode = (footer = null) => me ? (
     <PokeSystem
       colors={POKE_COLORS}
       roomCode={code}
@@ -408,7 +408,7 @@ export default function Play({ params }) {
       playerDetails={players.map(p => ({ name: p.name, firstName: p.first_name, lastName: p.last_name }))}
       gamePhase={game?.phase}
       onResetToLobby={async () => { await supabase.rpc("drawful_reset_game", { p_code: code }) }}
-    />
+    >{footer}</PokeSystem>
   ) : null
 
 
@@ -694,7 +694,7 @@ export default function Play({ params }) {
       <div style={{ minHeight: "100dvh", background: BG, display: "flex", alignItems: "center", justifyContent: "center" }}>
         <p style={{ color: "rgba(255,255,255,0.4)", fontSize: 18, fontWeight: 700 }}>Loading…</p>
       </div>
-        {pokeSystemNode}
+        {pokeSystemNode()}
       </>
     )
   }
@@ -747,7 +747,7 @@ export default function Play({ params }) {
           >Back to lobby</button>
         </div>
       </div>
-        {pokeSystemNode}
+        {pokeSystemNode()}
       </>
     )
   }
@@ -807,7 +807,7 @@ export default function Play({ params }) {
           </button>
         </div>
       </div>
-        {pokeSystemNode}
+        {pokeSystemNode()}
       </>
     )
   }
@@ -899,7 +899,7 @@ export default function Play({ params }) {
           )}
         </div>
       </div>
-        {pokeSystemNode}
+        {pokeSystemNode()}
       </>
     )
   }
@@ -911,7 +911,7 @@ export default function Play({ params }) {
 
     return (
       <>
-      <div style={{ minHeight: "100dvh", background: BG, color: "white", paddingBottom: 40 }}>
+      <div style={{ minHeight: "100dvh", background: BG, color: "white", paddingBottom: BOTTOM_PAD }}>
         <div style={{ padding: "28px 24px 20px", background: "#1C5250" }}>
           <div style={{ fontSize: 13, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.18em", opacity: 0.75, marginBottom: 4 }}>
             DRAWING {currentDrawingNumber} OF {drawingPlayers.length}
@@ -987,7 +987,7 @@ export default function Play({ params }) {
           )}
         </div>
       </div>
-        {pokeSystemNode}
+        {pokeSystemNode()}
       </>
     )
   }
@@ -1116,23 +1116,12 @@ export default function Play({ params }) {
           </div>
         </div>
 
-        {/* Fixed bottom: all players ready to advance */}
-        <div style={{ position: "fixed", bottom: FOOTER_H, left: 0, right: 0, padding: "16px 24px", paddingBottom: "calc(16px + env(safe-area-inset-bottom))", background: BG, borderTop: "1px solid rgba(255,255,255,0.15)" }}>
-          {(isMeReady || markingReady) ? (
-            <p style={{ fontSize: 14, fontWeight: 700, opacity: 0.75, textAlign: "center" }}>
-              {readyCount} / {players.length} ready — waiting for others…
-            </p>
-          ) : (
-            <button
-              onClick={markReady}
-              style={{ background: ACCENT, color: "#000", fontSize: 20, fontWeight: 900, padding: "20px", width: "100%", display: "block" }}
-            >
-              {isLast ? "See Final Scores →" : "Next Drawing →"}
-            </button>
-          )}
-        </div>
       </div>
-        {pokeSystemNode}
+        {pokeSystemNode(
+          (isMeReady || markingReady)
+            ? <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 700, color: "rgba(255,255,255,0.65)" }}>{readyCount} / {players.length} ready…</div>
+            : <button onClick={markReady} style={{ flex: 1, height: "100%", background: ACCENT, color: "#000", fontSize: 16, fontWeight: 900 }}>{isLast ? "See Final Scores →" : "Next Drawing →"}</button>
+        )}
       </>
     )
   }
