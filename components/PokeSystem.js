@@ -58,11 +58,15 @@ export default function PokeSystem({
   const [pokeTarget, setPokeTarget]     = useState(null)
   const [pokeSending, setPokeSending]   = useState(false)
   const [lobbyResetting, setLobbyResetting] = useState(false)
+  const [cooldownSec, setCooldownSec]   = useState(0)
 
   const prevPhaseRef     = useRef(gamePhase)
   const knownIdsRef      = useRef(new Set())
   const hasLoadedRef     = useRef(false)
   const currentPlayerRef = useRef(currentPlayer)
+  const touchStartsRef   = useRef({})
+  const cooldownEndRef   = useRef(0)
+  const cooldownTickRef  = useRef(null)
   useEffect(() => { currentPlayerRef.current = currentPlayer }, [currentPlayer])
 
   function addNotification(poke) {
@@ -137,12 +141,24 @@ export default function PokeSystem({
     setMsgSending(false)
   }
 
+  function startCooldown() {
+    clearInterval(cooldownTickRef.current)
+    cooldownEndRef.current = Date.now() + 10000
+    setCooldownSec(10)
+    cooldownTickRef.current = setInterval(() => {
+      const s = Math.ceil((cooldownEndRef.current - Date.now()) / 1000)
+      if (s <= 0) { clearInterval(cooldownTickRef.current); setCooldownSec(0) }
+      else setCooldownSec(s)
+    }, 500)
+  }
+
   async function sendPoke(target) {
-    if (pokeSending) return
+    if (pokeSending || cooldownSec > 0) return
     setPokeSending(true)
     await supabase.from("pokes").insert({ room_code: roomCode, from_player: currentPlayer, to_player: target, message: "👉" })
     setPanel(null)
     setPokeSending(false)
+    startCooldown()
   }
 
   async function handleResetToLobby() {
@@ -195,11 +211,41 @@ export default function PokeSystem({
             setNotifications(prev => prev.map(n => n.id === id ? { ...n, exiting: true } : n))
             setTimeout(() => setNotifications(prev => prev.filter(n => n.id !== id)), 450)
           }
-          let touchStartX = null
           return (
             <div key={id}
-              onTouchStart={e => { touchStartX = e.touches[0].clientX }}
-              onTouchEnd={e => { if (touchStartX !== null && e.changedTouches[0].clientX - touchStartX > 40) dismiss() }}
+              onTouchStart={e => {
+                if (exiting) return
+                touchStartsRef.current[id] = { x: e.touches[0].clientX, y: e.touches[0].clientY }
+              }}
+              onTouchMove={e => {
+                const start = touchStartsRef.current[id]
+                if (!start) return
+                const dx = e.touches[0].clientX - start.x
+                const dy = e.touches[0].clientY - start.y
+                e.currentTarget.style.transform = `translate(${dx}px, ${dy}px)`
+                e.currentTarget.style.opacity = `${Math.max(0, 1 - Math.sqrt(dx * dx + dy * dy) / 120)}`
+                e.currentTarget.style.transition = "none"
+              }}
+              onTouchEnd={e => {
+                const start = touchStartsRef.current[id]
+                if (!start) return
+                const dx = e.changedTouches[0].clientX - start.x
+                const dy = e.changedTouches[0].clientY - start.y
+                const dist = Math.sqrt(dx * dx + dy * dy)
+                delete touchStartsRef.current[id]
+                if (dist >= 40) {
+                  e.preventDefault()
+                  const scale = 280 / dist
+                  e.currentTarget.style.transition = "transform 0.28s ease-out, opacity 0.28s ease-out"
+                  e.currentTarget.style.transform = `translate(${dx + dx * scale}px, ${dy + dy * scale}px)`
+                  e.currentTarget.style.opacity = "0"
+                  setTimeout(() => setNotifications(prev => prev.filter(n => n.id !== id)), 300)
+                } else {
+                  e.currentTarget.style.transition = "transform 0.2s ease-out, opacity 0.2s ease-out"
+                  e.currentTarget.style.transform = ""
+                  e.currentTarget.style.opacity = ""
+                }
+              }}
               onClick={dismiss}
               style={{
                 background: notifBg, padding: "8px 12px", maxWidth: 260,
@@ -370,9 +416,9 @@ export default function PokeSystem({
             </div>
             <div style={{ display: "flex", gap: 8 }}>
               <button onClick={() => setPanel(null)} style={{ flex: 1, background: dark, color: "rgba(255,255,255,0.8)", fontSize: 15, fontWeight: 800, padding: "14px" }}>Cancel</button>
-              <button onClick={() => pokeTarget && sendPoke(pokeTarget)} disabled={!pokeTarget || pokeSending}
-                style={{ flex: 2, background: yellow, color: "#000", fontSize: 15, fontWeight: 900, padding: "14px" }}>
-                {pokeSending ? "Poking…" : pokeTarget ? `Poke ${pokeTarget}` : "Pick someone"}
+              <button onClick={() => pokeTarget && sendPoke(pokeTarget)} disabled={!pokeTarget || pokeSending || cooldownSec > 0}
+                style={{ flex: 2, background: cooldownSec > 0 ? "rgba(255,255,255,0.1)" : yellow, color: cooldownSec > 0 ? "rgba(255,255,255,0.4)" : "#000", fontSize: 15, fontWeight: 900, padding: "14px" }}>
+                {pokeSending ? "Poking…" : cooldownSec > 0 ? `Wait ${cooldownSec}s` : pokeTarget ? `Poke ${pokeTarget}` : "Pick someone"}
               </button>
             </div>
           </div>
