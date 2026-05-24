@@ -27,6 +27,18 @@ function splitCode(code) {
   return [code, ""]
 }
 
+const INSTRUCTIONS = `Players: 3+ · Time: 10+ min
+
+Each player gets a secret prompt and draws it on their phone. No labels allowed.
+
+Everyone's drawings are shown one at a time. All other players type a fake title that sounds plausible. The real prompt is mixed in with the fakes, and everyone votes for which title they think is real.
+
+You score points by:
+- Voting for the real prompt
+- Writing a fake that fools other players into voting for it
+
+After everyone has presented their drawing, the game tallies up and the highest scorer wins.`
+
 function loadProfile() {
   try {
     const local = JSON.parse(localStorage.getItem("jackgames:profile") || "null")
@@ -64,6 +76,7 @@ export default function Lobby({ params }) {
   const [joining, setJoining] = useState(false)
   const [joinError, setJoinError] = useState("")
   const [notFound, setNotFound] = useState(false)
+  const [showInstructions, setShowInstructions] = useState(false)
   const [starting, setStarting] = useState(false)
   const [confirmingStart, setConfirmingStart] = useState(false)
 
@@ -194,16 +207,24 @@ export default function Lobby({ params }) {
             })()}
           </div>
         </div>
-        <button
-          onClick={async () => {
-            const url = window.location.href
-            if (navigator.share) await navigator.share({ title: `Join Drawful — ${code}`, url })
-            else { await navigator.clipboard.writeText(url); alert("Link copied!") }
-          }}
-          style={{ background: WARM_LIGHT, color: "white", fontSize: 13, fontWeight: 800, padding: "10px 16px", flexShrink: 0, marginTop: 4 }}
-        >
-          Invite
-        </button>
+        <div style={{ display: "flex", gap: 8, flexShrink: 0, marginTop: 4 }}>
+          <button
+            onClick={() => setShowInstructions(true)}
+            style={{ flexShrink: 0, background: "rgba(255,255,255,0.15)", color: "white", fontSize: 15, fontWeight: 800, padding: "10px 14px" }}
+          >
+            ?
+          </button>
+          <button
+            onClick={async () => {
+              const url = window.location.href
+              if (navigator.share) await navigator.share({ title: `Join Drawful — ${code}`, url })
+              else { await navigator.clipboard.writeText(url); alert("Link copied!") }
+            }}
+            style={{ background: WARM_LIGHT, color: "white", fontSize: 13, fontWeight: 800, padding: "10px 16px" }}
+          >
+            Invite
+          </button>
+        </div>
       </div>
 
       {/* Start CTA */}
@@ -289,6 +310,26 @@ export default function Lobby({ params }) {
           <p style={{ fontSize: 13, opacity: 0.65, fontWeight: 600, marginTop: 10 }}>Minimum {MIN_PLAYERS} players needed.</p>
         )}
       </div>
+      {showInstructions && (
+        <div
+          onClick={() => setShowInstructions(false)}
+          style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)", zIndex: 200, display: "flex", alignItems: "flex-start", justifyContent: "center", padding: 24, overflowY: "auto" }}
+        >
+          <div
+            onClick={e => e.stopPropagation()}
+            style={{ background: "#1A1A2E", width: "100%", maxWidth: 480, padding: "28px 24px", marginTop: 24 }}
+          >
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
+              <div style={{ fontSize: 20, fontWeight: 900, color: "white" }}>How to Play</div>
+              <button onClick={() => setShowInstructions(false)} style={{ background: "rgba(255,255,255,0.15)", color: "white", fontSize: 18, fontWeight: 800, padding: "6px 12px" }}>✕</button>
+            </div>
+            <div style={{ fontSize: 15, color: "rgba(255,255,255,0.85)", lineHeight: 1.7, fontWeight: 400, whiteSpace: "pre-wrap" }}>
+              {INSTRUCTIONS}
+            </div>
+          </div>
+        </div>
+      )}
+
       {confirmingStart && (
         <div
           onClick={() => setConfirmingStart(false)}
