@@ -407,6 +407,7 @@ export default function Play({ params }) {
 
   const [markingReady, setMarkingReady] = useState(false)
   const [showGameModal, setShowGameModal] = useState(false)
+  const [bonusMatchName, setBonusMatchName] = useState(null)
 
   const getExportRef = useRef(null)
   const prevPhaseRef = useRef(null)
@@ -678,6 +679,7 @@ export default function Play({ params }) {
     setSubmittingAnswer(true)
     const trimmed = answerText.trim()
     const capitalized = trimmed.charAt(0).toUpperCase() + trimmed.slice(1)
+    const myText = trimmed.toLowerCase()
     const { error } = await supabase.rpc("drawful_submit_answer", {
       p_code: code,
       p_drawing_player_id: currentArtist.id,
@@ -685,6 +687,15 @@ export default function Play({ params }) {
       p_text: capitalized,
     })
     if (error) { alert("Error: " + error.message); setSubmittingAnswer(false); return }
+    const { data: freshAnswers } = await supabase
+      .from("drawful_answers").select("author_id,text")
+      .eq("game_code", code).eq("drawing_player_id", currentArtist.id).eq("is_real", false)
+    const match = freshAnswers?.find(a => a.author_id !== me.id && a.text?.trim().toLowerCase() === myText)
+    if (match) {
+      const matchPlayer = players.find(p => p.id === match.author_id)
+      setBonusMatchName(matchPlayer?.name || "someone")
+      setTimeout(() => setBonusMatchName(null), 4000)
+    }
     await loadState()
   }
 
@@ -913,6 +924,11 @@ export default function Play({ params }) {
           ) : isWaiting ? (
             // Already answered
             <div>
+              {bonusMatchName && (
+                <div style={{ background: "#F5E8D8", color: "#000", padding: "10px 16px", fontSize: 14, fontWeight: 800, marginBottom: 12 }}>
+                  Same answer as {bonusMatchName}! +1 bonus
+                </div>
+              )}
               <p style={{ fontSize: 15, opacity: 0.7, fontWeight: 600, marginBottom: 8 }}>You answered:</p>
               <p style={{ fontSize: 20, fontWeight: 800, marginBottom: 20 }}>"{myAnswer?.text}"</p>
               <p style={{ fontSize: 14, opacity: 0.65, fontWeight: 600 }}>Waiting for everyone to answer…</p>
