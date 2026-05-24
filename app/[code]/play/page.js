@@ -947,6 +947,16 @@ export default function Play({ params }) {
 
   if (game.phase === "voting") {
     const hasVoted = !!myVote
+    // De-dup fake answers by text (keep first by display_order); real answer always shown separately
+    const sortedAnswers = [...currentAnswers].sort((a, b) => (a.display_order ?? 0) - (b.display_order ?? 0))
+    const seenAnswerTexts = new Set()
+    const dedupedAnswers = sortedAnswers.filter(a => {
+      if (a.is_real) return true
+      const key = a.text.trim().toLowerCase()
+      if (seenAnswerTexts.has(key)) return false
+      seenAnswerTexts.add(key)
+      return true
+    })
 
     return (
       <>
@@ -975,7 +985,7 @@ export default function Play({ params }) {
             <div>
               <p style={{ fontSize: 15, opacity: 0.7, fontWeight: 600, marginBottom: 20 }}>Waiting for everyone to vote…</p>
               <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                {currentAnswers.map(a => (
+                {dedupedAnswers.map(a => (
                   <div key={a.id} style={{
                     padding: "16px 18px", fontSize: 17, fontWeight: 700,
                     background: a.id === myVote?.answer_id ? WARM_LIGHT : MID,
@@ -994,7 +1004,7 @@ export default function Play({ params }) {
                 Pick what you think is the real answer.
               </p>
               <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 16 }}>
-                {currentAnswers.map(a => {
+                {dedupedAnswers.map(a => {
                   const isSelected = selectedAnswerId === a.id
                   const isOwn = a.author_id === myPlayerId
                   return (
@@ -1086,38 +1096,53 @@ export default function Play({ params }) {
             </div>
           )}
 
-          {/* Fake answers */}
+          {/* Fake answers — grouped by text */}
           {fakeAnswers.length > 0 && (
             <div style={{ marginBottom: 28 }}>
               <div style={{ fontSize: 17, fontWeight: 800, color: "rgba(255,255,255,0.85)", marginBottom: 10 }}>
                 The Fakes
               </div>
               <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                {fakeAnswers.map(a => {
-                  const author = players.find(p => p.id === a.author_id)
-                  const fooled = currentVotes
-                    .filter(v => v.answer_id === a.id)
-                    .map(v => players.find(p => p.id === v.voter_id)?.name)
-                    .filter(Boolean)
-                  return (
-                    <div key={a.id} style={{ background: "#205858", padding: "12px 16px" }}>
-                      <div style={{ fontSize: 17, fontWeight: 700, marginBottom: 6 }}>{a.text}</div>
-                      <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 5 }}>
-                        <span style={{ fontSize: 13, opacity: 0.7, fontWeight: 600 }}>by</span>
-                        <span style={{ fontSize: 14, fontWeight: 800 }}>{author?.name ?? "?"}</span>
-                        {fooled.length > 0 ? (
-                          <>
-                            <span style={{ fontSize: 13, opacity: 0.7, fontWeight: 600 }}>· fooled</span>
-                            <span style={{ fontSize: 14, fontWeight: 800 }}>{fooled.join(", ")}</span>
-                            <span style={{ fontSize: 13, fontWeight: 800, color: ACCENT }}>+{fooled.length}</span>
-                          </>
-                        ) : (
-                          <span style={{ fontSize: 13, opacity: 0.65, fontWeight: 600 }}>· nobody fooled</span>
-                        )}
+                {(() => {
+                  // Group fakes by text
+                  const groups = []
+                  fakeAnswers.forEach(a => {
+                    const key = a.text.trim().toLowerCase()
+                    const existing = groups.find(g => g.key === key)
+                    if (existing) {
+                      existing.authorIds.push(a.author_id)
+                    } else {
+                      const fooled = currentVotes
+                        .filter(v => fakeAnswers.filter(fa => fa.text.trim().toLowerCase() === key).some(fa => fa.id === v.answer_id))
+                        .map(v => players.find(p => p.id === v.voter_id)?.name)
+                        .filter(Boolean)
+                      groups.push({ key, text: a.text, authorIds: [a.author_id], fooled })
+                    }
+                  })
+                  return groups.map(g => {
+                    const authors = g.authorIds.map(id => players.find(p => p.id === id)?.name ?? "?")
+                    const isShared = g.authorIds.length > 1
+                    return (
+                      <div key={g.key} style={{ background: "#205858", padding: "12px 16px" }}>
+                        <div style={{ fontSize: 17, fontWeight: 700, marginBottom: 6 }}>{g.text}</div>
+                        <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 5 }}>
+                          <span style={{ fontSize: 13, opacity: 0.7, fontWeight: 600 }}>by</span>
+                          <span style={{ fontSize: 14, fontWeight: 800 }}>{authors.join(" & ")}</span>
+                          {isShared && <span style={{ fontSize: 12, fontWeight: 800, color: ACCENT }}>+1 bonus</span>}
+                          {g.fooled.length > 0 ? (
+                            <>
+                              <span style={{ fontSize: 13, opacity: 0.7, fontWeight: 600 }}>· fooled</span>
+                              <span style={{ fontSize: 14, fontWeight: 800 }}>{g.fooled.join(", ")}</span>
+                              <span style={{ fontSize: 13, fontWeight: 800, color: ACCENT }}>+{g.fooled.length}</span>
+                            </>
+                          ) : (
+                            <span style={{ fontSize: 13, opacity: 0.65, fontWeight: 600 }}>· nobody fooled</span>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  )
-                })}
+                    )
+                  })
+                })()}
               </div>
             </div>
           )}
