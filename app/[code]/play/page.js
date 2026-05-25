@@ -959,7 +959,7 @@ export default function Play({ params }) {
               <button
                 onClick={submitAnswer}
                 disabled={!answerText.trim() || submittingAnswer}
-                style={{ background: ACCENT, color: "#000", fontSize: 20, fontWeight: 900, padding: "18px", width: "100%", display: "block", animation: nudgeAnswer ? "nudgePulse 1.5s ease-in-out infinite" : "none" }}
+                style={{ background: ACCENT, color: "#000", fontSize: 20, fontWeight: 900, padding: "18px", width: "100%", display: "block", animation: nudgeAnswer ? "nudgePulse 1.0s ease-in-out infinite" : "none" }}
               >
                 {submittingAnswer ? "Submitting…" : "Submit"}
               </button>

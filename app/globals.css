@@ -8,6 +8,6 @@ input, select, textarea { font-family: inherit; outline: none; border: none; }
 input::placeholder, textarea::placeholder { color: rgba(255,255,255,0.6); opacity: 1; }
 
 @keyframes nudgePulse {
-  0%, 100% { filter: brightness(1); }
-  50% { filter: brightness(1.5); }
+  0%, 100% { filter: brightness(1); transform: scale(1); }
+  50% { filter: brightness(2.2); transform: scale(1.04); }
 }
