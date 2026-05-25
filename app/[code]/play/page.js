@@ -408,6 +408,7 @@ export default function Play({ params }) {
   const [markingReady, setMarkingReady] = useState(false)
   const [showGameModal, setShowGameModal] = useState(false)
   const [bonusMatchName, setBonusMatchName] = useState(null)
+  const [instructions, setInstructions] = useState("")
 
   const getExportRef = useRef(null)
   const prevPhaseRef = useRef(null)
@@ -425,6 +426,7 @@ export default function Play({ params }) {
       allPlayers={players.map(p => p.name)}
       playerDetails={players.map(p => ({ name: p.name, firstName: p.first_name, lastName: p.last_name }))}
       gamePhase={game?.phase}
+      rules={instructions ? [["How to Play", instructions]] : null}
       onResetToLobby={async () => { await supabase.rpc("drawful_reset_game", { p_code: code }) }}
     >{footer}</PokeSystem>
   ) : null
@@ -466,9 +468,11 @@ export default function Play({ params }) {
   }, [game?.next_game])
 
   useEffect(() => {
+    supabase.from("game_instructions").select("body").eq("game_key", "drawful").single()
+      .then(({ data }) => { if (data?.body) setInstructions(data.body) })
     loadState()
-    let poll = setInterval(loadState, 5000)
-    function handleVisibility() { clearInterval(poll); if (!document.hidden) { loadState(); poll = setInterval(loadState, 5000) } }
+    let poll = setInterval(loadState, 1500)
+    function handleVisibility() { clearInterval(poll); if (!document.hidden) { loadState(); poll = setInterval(loadState, 1500) } }
     document.addEventListener("visibilitychange", handleVisibility)
     const channel = supabase.channel(`drawful-play-${code}`)
       .on("postgres_changes", { event: "*", schema: "public", table: "drawful_games", filter: `code=eq.${code}` }, loadState)

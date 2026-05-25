@@ -433,7 +433,7 @@ export default function PokeSystem({
             {rules.map(([title, body]) => (
               <div key={title}>
                 <div style={{ fontSize: 13, fontWeight: 800, color: yellow, marginBottom: 4 }}>{title}</div>
-                <div style={{ fontSize: 15, fontWeight: 500, color: "rgba(255,255,255,0.85)", lineHeight: 1.5 }}>{body}</div>
+                <div style={{ fontSize: 15, fontWeight: 500, color: "rgba(255,255,255,0.85)", lineHeight: 1.6, whiteSpace: "pre-wrap" }}>{body}</div>
               </div>
             ))}
             <button onClick={() => setPanel(null)} style={{ background: dark, color: "rgba(255,255,255,0.8)", fontSize: 15, fontWeight: 800, padding: "14px" }}>Got it</button>

@@ -27,17 +27,7 @@ function splitCode(code) {
   return [code, ""]
 }
 
-const INSTRUCTIONS = `Players: 3+ · Time: 10+ min
 
-Each player gets a secret prompt and draws it on their phone. No labels allowed.
-
-Everyone's drawings are shown one at a time. All other players type a fake title that sounds plausible. The real prompt is mixed in with the fakes, and everyone votes for which title they think is real.
-
-You score points by:
-- Voting for the real prompt
-- Writing a fake that fools other players into voting for it
-
-After everyone has presented their drawing, the game tallies up and the highest scorer wins.`
 
 function loadProfile() {
   try {
@@ -77,6 +67,7 @@ export default function Lobby({ params }) {
   const [joinError, setJoinError] = useState("")
   const [notFound, setNotFound] = useState(false)
   const [showInstructions, setShowInstructions] = useState(false)
+  const [instructions, setInstructions] = useState("")
   const [starting, setStarting] = useState(false)
   const [confirmingStart, setConfirmingStart] = useState(false)
 
@@ -105,9 +96,11 @@ export default function Lobby({ params }) {
   }, [])
 
   useEffect(() => {
+    supabase.from("game_instructions").select("body").eq("game_key", "drawful").single()
+      .then(({ data }) => { if (data?.body) setInstructions(data.body) })
     loadState()
-    let poll = setInterval(loadState, 5000)
-    function handleVisibility() { clearInterval(poll); if (!document.hidden) { loadState(); poll = setInterval(loadState, 5000) } }
+    let poll = setInterval(loadState, 1500)
+    function handleVisibility() { clearInterval(poll); if (!document.hidden) { loadState(); poll = setInterval(loadState, 1500) } }
     document.addEventListener("visibilitychange", handleVisibility)
     const channel = supabase.channel(`drawful-lobby-${code}`)
       .on("postgres_changes", { event: "*", schema: "public", table: "drawful_players", filter: `game_code=eq.${code}` }, loadState)
@@ -324,7 +317,7 @@ export default function Lobby({ params }) {
               <button onClick={() => setShowInstructions(false)} style={{ background: "rgba(255,255,255,0.15)", color: "white", fontSize: 18, fontWeight: 800, padding: "6px 12px" }}>✕</button>
             </div>
             <div style={{ fontSize: 15, color: "rgba(255,255,255,0.85)", lineHeight: 1.7, fontWeight: 400, whiteSpace: "pre-wrap" }}>
-              {INSTRUCTIONS}
+              {instructions || "Loading…"}
             </div>
           </div>
         </div>
