@@ -491,6 +491,7 @@ export default function Play({ params }) {
       setSelectedAnswerId(null)
       setSubmittingAnswer(false)
       setSubmittingVote(false)
+      setMarkingReady(false)
     }
   }, [game?.current_drawing_index])
 
@@ -777,9 +778,13 @@ export default function Play({ params }) {
             </div>
           ))}
         </div>
-        <div style={{ padding: "0 24px 48px" }}>
-          <button onClick={() => setShowGameModal(true)}
+        <div style={{ padding: "0 24px 48px", display: "flex", flexDirection: "column", gap: 10 }}>
+          <button onClick={() => supabase.rpc("drawful_reset_game", { p_code: code })}
             style={{ background: ACCENT, color: "#000", fontSize: 16, fontWeight: 900, padding: "14px 24px", width: "100%" }}>
+            Play Again
+          </button>
+          <button onClick={() => setShowGameModal(true)}
+            style={{ background: "rgba(255,255,255,0.15)", color: "white", fontSize: 16, fontWeight: 700, padding: "14px 24px", width: "100%" }}>
             Play Another Game
           </button>
         </div>
@@ -858,19 +863,12 @@ export default function Play({ params }) {
             onFirstMark={() => setDrawingDirty(true)}
           />
         </div>
-
-        {/* Submit */}
-        <div style={{ flexShrink: 0, padding: "12px 24px", paddingBottom: "max(12px, env(safe-area-inset-bottom))" }}>
-          <button
-            onClick={() => submitDrawing(false)}
-            disabled={submittingDrawing}
-            style={{ background: ACCENT, color: "#000", fontSize: 20, fontWeight: 900, padding: "18px", width: "100%", display: "block" }}
-          >
+      </div>
+        {pokeSystemNode(
+          <button onClick={() => submitDrawing(false)} disabled={submittingDrawing} style={{ flex: 1, height: "100%", background: ACCENT, color: "#000", fontSize: 16, fontWeight: 900 }}>
             {submittingDrawing ? "Submitting…" : "Done Drawing"}
           </button>
-        </div>
-      </div>
-        {pokeSystemNode()}
+        )}
       </>
     )
   }
@@ -952,22 +950,21 @@ export default function Play({ params }) {
                 rows={2}
                 style={{
                   width: "100%", background: WARM_LIGHT, color: "white",
-                  fontSize: 18, fontWeight: 600, padding: "14px 16px", borderRadius: 8,
-                  resize: "none", display: "block", marginBottom: 10, borderRadius: 0,
+                  fontSize: 18, fontWeight: 600, padding: "14px 16px",
+                  resize: "none", display: "block", marginBottom: 0,
                 }}
               />
-              <button
-                onClick={submitAnswer}
-                disabled={!answerText.trim() || submittingAnswer}
-                style={{ background: ACCENT, color: "#000", fontSize: 20, fontWeight: 900, padding: "18px", width: "100%", display: "block", animation: nudgeAnswer ? "nudgePulse 1.0s ease-in-out infinite" : "none" }}
-              >
-                {submittingAnswer ? "Submitting…" : "Submit"}
-              </button>
             </div>
           )}
         </div>
       </div>
-        {pokeSystemNode()}
+        {pokeSystemNode(
+          !amArtist && !isWaiting
+            ? <button onClick={submitAnswer} disabled={!answerText.trim() || submittingAnswer} style={{ flex: 1, height: "100%", background: ACCENT, color: "#000", fontSize: 16, fontWeight: 900, animation: nudgeAnswer ? "nudgePulse 1.0s ease-in-out infinite" : "none" }}>
+                {submittingAnswer ? "Submitting…" : "Submit"}
+              </button>
+            : null
+        )}
       </>
     )
   }
@@ -1054,18 +1051,17 @@ export default function Play({ params }) {
                   )
                 })}
               </div>
-              <button
-                onClick={submitVote}
-                disabled={!selectedAnswerId || submittingVote}
-                style={{ background: ACCENT, color: "#000", fontSize: 20, fontWeight: 900, padding: "18px", width: "100%", display: "block" }}
-              >
-                {submittingVote ? "Voting…" : "Vote"}
-              </button>
             </div>
           )}
         </div>
       </div>
-        {pokeSystemNode()}
+        {pokeSystemNode(
+          !amArtist && !hasVoted
+            ? <button onClick={submitVote} disabled={!selectedAnswerId || submittingVote} style={{ flex: 1, height: "100%", background: ACCENT, color: "#000", fontSize: 16, fontWeight: 900 }}>
+                {submittingVote ? "Voting…" : "Vote"}
+              </button>
+            : null
+        )}
       </>
     )
   }
